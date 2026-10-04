@@ -1,0 +1,101 @@
+{
+  "n_rows": 5332,
+  "n_countries": 172,
+  "regression": {
+    "app features (year, country id, region id, 3 pollutants)": {
+      "random": {
+        "r2": 0.9206290473719893,
+        "mae": 478.34726250000006
+      },
+      "held_out_countries": {
+        "r2": 0.30564000708497474,
+        "r2_std": 0.12213552606612009,
+        "mae": 1742.901830306316
+      },
+      "temporal": {
+        "r2": 0.7413090734360106,
+        "mae": 712.2874335548173
+      }
+    },
+    "no country id (year, region id, 3 pollutants)": {
+      "random": {
+        "r2": 0.8560516341572744,
+        "mae": 694.8635750000001
+      },
+      "held_out_countries": {
+        "r2": 0.43378154405041947,
+        "r2_std": 0.0924740290991653,
+        "mae": 1574.8762629981024
+      },
+      "temporal": {
+        "r2": 0.6184825614862122,
+        "mae": 852.0845099667774
+      }
+    },
+    "pollutants only": {
+      "random": {
+        "r2": 0.6462634793184651,
+        "mae": 1193.6928516666667
+      },
+      "held_out_countries": {
+        "r2": 0.13951398949040525,
+        "r2_std": 0.07142084427571944,
+        "mae": 2054.3855639016897
+      },
+      "temporal": {
+        "r2": 0.021983681129567945,
+        "mae": 1472.8707834994464
+      }
+    },
+    "year + region only (no pollutants)": {
+      "random": {
+        "r2": 0.3631537704466403,
+        "mae": 1775.3799406289222
+      },
+      "held_out_countries": {
+        "r2": 0.3766200986138527,
+        "r2_std": 0.1752008416319457,
+        "mae": 1750.1244464529682
+      },
+      "temporal": {
+        "r2": 0.3550503039576578,
+        "mae": 1282.4832610949127
+      }
+    }
+  },
+  "classification": {
+    "random": 0.928125,
+    "held_out_countries": {
+      "accuracy": 0.5952182163187856,
+      "std": 0.044135005760355096
+    },
+    "temporal": 0.8264119601328903,
+    "chance": 0.3333333333333333
+  },
+  "baselines_temporal": {
+    "country mean of training years": {
+      "r2": 0.03645869315076944,
+      "mae": 1408.986399501661
+    },
+    "last observed value carried forward": {
+      "r2": 0.9370954503468968,
+      "mae": 333.42109634551497
+    }
+  },
+  "baselines_held_out": {
+    "region mean": {
+      "r2": 0.2930380605490138,
+      "mae": 1890.819421570329
+    }
+  },
+  "temporal_split": {
+    "train_years": [
+      1990,
+      2013
+    ],
+    "test_years": [
+      2014,
+      2020
+    ]
+  }
+}
