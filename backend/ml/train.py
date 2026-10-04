@@ -41,8 +41,9 @@ def _sha256(path) -> str:
 
 def _git_commit() -> str:
     """Commit the model was trained from; GIT_COMMIT can be injected where .git is unavailable (Docker)."""
-    if os.getenv("GIT_COMMIT"):
-        return os.environ["GIT_COMMIT"]
+    injected = os.getenv("GIT_COMMIT") or os.getenv("RENDER_GIT_COMMIT")  # the latter is set by Render builds
+    if injected and injected != "unknown":
+        return injected[:7]
     try:
         out = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True, cwd=Path(__file__).parent

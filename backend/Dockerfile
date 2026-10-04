@@ -12,7 +12,8 @@ COPY --chmod=a+rX data data
 # Models are rebuilt from the dataset at image build time, never committed.
 WORKDIR /srv/backend
 ARG GIT_COMMIT=unknown
-ENV GIT_COMMIT=$GIT_COMMIT
+ARG RENDER_GIT_COMMIT=
+ENV GIT_COMMIT=$GIT_COMMIT RENDER_GIT_COMMIT=$RENDER_GIT_COMMIT
 RUN python -m ml.train
 
 RUN useradd --system --no-create-home app
