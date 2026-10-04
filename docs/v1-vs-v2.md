@@ -29,7 +29,7 @@ what I found and what changed. I'm keeping it public on purpose: finding and fix
 | Secrets | key printed to log | keys only from env, never logged; `.env.example` provided |
 | External APIs | no timeouts, 500s | timeouts, 502/503/404 with clean messages, US EPA AQI bands |
 | Ops | none | `/health`, configurable CORS, GitHub Actions CI |
-| Tests | 0 | 30 backend tests |
+| Tests | 0 | 31 backend tests |
 | Frontend | dataset duplicated inside the UI, 10 unused dependencies, a 5.7 MB video | one shared dataset, unused dependencies removed, optional hero video |
 
 ## Thanks

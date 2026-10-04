@@ -21,7 +21,7 @@ AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to he
 | 4. Evaluation | Random vs held-out-country vs temporal splits, with trivial baselines | `backend/ml/evaluate.py`, [docs](docs/evaluation.md) |
 | 5. Serving | FastAPI + Pydantic validation, `/health`, `/model_info`, timeouts and clean errors | `backend/app/` |
 | 6. Product | React 18 + Vite + MUI dashboard: predictions, choropleth map, charts, dataset explorer, live AQI and health news | `frontend/` |
-| 7. Delivery | Pinned lockfiles, model versioning, Dockerfiles + Compose, pre-commit, pytest suite (30 tests), ruff, GitHub Actions CI | `docker-compose.yml`, `backend/tests/`, `.github/workflows/` |
+| 7. Delivery | Pinned lockfiles, model versioning, Dockerfiles + Compose, pre-commit, pytest suite (31 tests), ruff, GitHub Actions CI | `docker-compose.yml`, `backend/tests/`, `.github/workflows/` |
 
 ## Features
 
@@ -116,7 +116,7 @@ and an over-optimistic evaluation, and fixed them. The details are in [docs/v1-v
 | Why | model inputs were assembled in a different column order from training, and the output was un-scaled with the wrong scaler column | one shared feature list for training and serving, no scaler to invert, regression test |
 | Reported performance | R² ≈ 0.92 on a random split | R² 0.92 random, **0.31 on unseen countries**; does not beat a region average or "last value carried forward" |
 | Data | taken at face value | ~7-8% of each pollutant column is corrupted in the source extract ([details](docs/data-quality.md)) |
-| Tests | none | 30 backend tests + CI |
+| Tests | none | 31 backend tests + CI |
 
 The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.md). In short: a random split on panel data lets the model recognise
 *which country it is looking at*. On countries it has never seen, pollutant exposure adds little. I'd rather show that than hide it.
