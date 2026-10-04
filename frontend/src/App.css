@@ -1,0 +1,58 @@
+#root {
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+.card {
+  padding: 1.5em; /* Adjust if necessary to avoid overflow */
+  box-sizing: border-box; /* Ensures padding is inside the card width */
+  width: 100%; /* Helps in responsive adjustments */
+}
+
+
+
+.read-the-docs {
+  color: #888;
+}
+
+.button-hover:hover {
+  background-color: #357ABD; /* Slightly darker shade */
+  transition: background-color 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: scale(1.03);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.menu-item {
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.menu-item:hover {
+  color: #007BFF; /* Slightly darker shade */
+  text-decoration: underline; /* Adds underline on hover */
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  color: #007BFF; /* Same hover color */
+  text-decoration: underline;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s;
+}
+
+html {
+  scroll-behavior: smooth;
+}

@@ -1,0 +1,6 @@
+html, body, #root {
+  height: 100%; /* Ensure the entire viewport height is used */
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
