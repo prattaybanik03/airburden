@@ -7,6 +7,8 @@
 
 AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: data preparation, model training, rigorous evaluation, a validated REST API, a React dashboard, live data integrations, containerisation, automated tests and CI.
 
+**Live demo:** [airburden.onrender.com](https://airburden.onrender.com) (API docs: [airburden-api.onrender.com/docs](https://airburden-api.onrender.com/docs)). Hosted on free instances, so the first request after a pause can take about a minute.
+
 ![Prediction screen](docs/img/prediction.png)
 
 ## The pipeline
