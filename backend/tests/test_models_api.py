@@ -112,3 +112,10 @@ def test_service_unavailable_without_artifacts(tmp_path, monkeypatch, payload):
         assert c.get("/health").json()["model_loaded"] is False
         assert c.post("/predict_health_burden", json=payload).status_code == 503
     get_settings.cache_clear()
+
+
+def test_model_info_reports_version_and_data_provenance(client):
+    meta = client.get("/model_info").json()["meta"]
+    assert meta["model_version"]
+    assert len(meta["dataset_sha256"]) == 64
+    assert meta["training_params"]["seed"] == 42

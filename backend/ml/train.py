@@ -11,7 +11,10 @@ Differences from the 2024 coursework version (see docs/v1-vs-v2.md):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,9 +29,27 @@ from ml.data import DEFAULT_DATA, FEATURES, POLLUTANTS, RISK_LABELS, TARGET, bui
 
 ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts"
 BUNDLE_NAME = "model_bundle.joblib"
+MODEL_VERSION = "2.0.0"  # bump when features, targets or training procedure change
 SEED = 42
 N_CLUSTERS = 3
 POLLUTANT_NAMES = {"exposure_mean_no2": "NO2", "exposure_mean_ozone": "ozone", "exposure_mean_pm25": "PM2.5"}
+
+
+def _sha256(path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _git_commit() -> str:
+    """Commit the model was trained from; GIT_COMMIT can be injected where .git is unavailable (Docker)."""
+    if os.getenv("GIT_COMMIT"):
+        return os.environ["GIT_COMMIT"]
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True, cwd=Path(__file__).parent
+        )
+        return out.stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
 
 
 def risk_labels(y, low_cut: float, high_cut: float) -> np.ndarray:
@@ -86,6 +107,10 @@ def train(data_path=DEFAULT_DATA, out_dir=ARTIFACT_DIR, n_estimators: int = 200,
         "cluster_remap": cluster_remap,
         "features": FEATURES,
         "meta": {
+            "model_version": MODEL_VERSION,
+            "git_commit": _git_commit(),
+            "dataset_sha256": _sha256(data_path),
+            "training_params": {"n_estimators": n_estimators, "seed": seed, "n_clusters": N_CLUSTERS},
             "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "sklearn_version": sklearn.__version__,
             "n_rows": len(df),

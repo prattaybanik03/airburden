@@ -1,10 +1,12 @@
 """Loads the trained bundle once and exposes validated prediction helpers."""
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import joblib
 import pandas as pd
+import sklearn
 
 from ml.data import FEATURES, POLLUTANTS
 
@@ -12,6 +14,9 @@ DISCLAIMER = (
     "Exploratory estimate from a model trained on country-level data. "
     "It is not validated for unseen countries and is not a medical or policy tool; see /model_info."
 )
+
+
+log = logging.getLogger("airburden.model")
 
 
 class UnknownInput(ValueError):
@@ -24,7 +29,13 @@ class ModelService:
 
     @classmethod
     def load(cls, path: Path) -> ModelService:
-        return cls(joblib.load(path))
+        service = cls(joblib.load(path))
+        trained_with = service.b["meta"].get("sklearn_version")
+        if trained_with != sklearn.__version__:
+            log.warning(
+                "Bundle trained with scikit-learn %s but %s is installed; retrain to be safe", trained_with, sklearn.__version__
+            )
+        return service
 
     # ---- helpers -------------------------------------------------------
     def _feature_frame(self, f: dict) -> pd.DataFrame:
