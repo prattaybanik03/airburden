@@ -3,7 +3,7 @@
 **A production-style machine learning system: data validation, model training and evaluation, a containerised inference API and an interactive dashboard.**
 
 [![CI](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml/badge.svg)](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.12-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
 
 AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: data preparation, model training, rigorous evaluation, a validated REST API, a React dashboard, live data integrations, containerisation, automated tests and CI.
 
@@ -19,7 +19,7 @@ AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to he
 | 4. Evaluation | Random vs held-out-country vs temporal splits, with trivial baselines | `backend/ml/evaluate.py`, [docs](docs/evaluation.md) |
 | 5. Serving | FastAPI + Pydantic validation, `/health`, `/model_info`, timeouts and clean errors | `backend/app/` |
 | 6. Product | React 18 + Vite + MUI dashboard: predictions, choropleth map, charts, dataset explorer, live AQI and health news | `frontend/` |
-| 7. Delivery | Dockerfiles + Compose, pytest suite (29 tests), ruff, GitHub Actions CI | `docker-compose.yml`, `backend/tests/`, `.github/workflows/` |
+| 7. Delivery | Pinned lockfiles, model versioning, Dockerfiles + Compose, pre-commit, pytest suite (30 tests), ruff, GitHub Actions CI | `docker-compose.yml`, `backend/tests/`, `.github/workflows/` |
 
 ## Features
 
@@ -51,15 +51,17 @@ More detail in [docs/architecture.md](docs/architecture.md).
 docker compose up --build     # API: http://localhost:8000/docs   UI: http://localhost:8080
 ```
 
+**Deploy**: [`render.yaml`](render.yaml) is a one-click Blueprint for free hosting; see [docs/deployment.md](docs/deployment.md).
+
 **Local development**:
 
-Requirements: Python 3.10+, Node 20+.
+Requirements: Python 3.12, Node 20+.
 
 ```bash
 # 1. backend
 cd backend
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.lock
 cp .env.example .env            # optional: add API keys for the live air-quality and news panels
 python -m ml.train              # builds artifacts/model_bundle.joblib from ../data/dataset.json (a few seconds)
 python -m uvicorn app.main:app --reload     # http://127.0.0.1:8000/docs
@@ -112,7 +114,7 @@ and an over-optimistic evaluation, and fixed them. The details are in [docs/v1-v
 | Why | model inputs were assembled in a different column order from training, and the output was un-scaled with the wrong scaler column | one shared feature list for training and serving, no scaler to invert, regression test |
 | Reported performance | R² ≈ 0.92 on a random split | R² 0.92 random, **0.31 on unseen countries**; does not beat a region average or "last value carried forward" |
 | Data | taken at face value | ~7-8% of each pollutant column is corrupted in the source extract ([details](docs/data-quality.md)) |
-| Tests | none | 29 backend tests + CI |
+| Tests | none | 30 backend tests + CI |
 
 The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.md). In short: a random split on panel data lets the model recognise
 *which country it is looking at*. On countries it has never seen, pollutant exposure adds little. I'd rather show that than hide it.
