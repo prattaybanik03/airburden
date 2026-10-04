@@ -56,7 +56,7 @@ const Navbar = () => {
         <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
           <img src="/logo.jpg" alt="Logo" style={{ height: "40px", marginRight: "10px" }} />
           <Typography variant="h6" sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
-            PWC
+            AirBurden
           </Typography>
         </Box>
 

@@ -28,7 +28,7 @@ const Footer = () => {
           style={{ width: "50px", marginBottom: "1rem" }}
         />
         <Typography variant="h6" fontWeight="bold">
-          Air Quality Dashboard
+          AirBurden
         </Typography>
       </Box>
 
@@ -93,7 +93,7 @@ const Footer = () => {
         variant="caption"
         sx={{ marginTop: "1rem", display: "block", color: "#fff" }}
       >
-        © 2024 PWC Air Quality Dashboard | All rights reserved.
+        © 2024-2026 AirBurden | MIT License
       </Typography>
     </Box>
   );
