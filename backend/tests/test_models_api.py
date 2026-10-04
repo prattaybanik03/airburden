@@ -119,3 +119,9 @@ def test_model_info_reports_version_and_data_provenance(client):
     assert meta["model_version"]
     assert len(meta["dataset_sha256"]) == 64
     assert meta["training_params"]["seed"] == 42
+
+
+def test_model_info_falls_back_to_deployed_commit(client, monkeypatch):
+    monkeypatch.setattr(client.app.state.model_service, "b", {**client.app.state.model_service.b, "meta": {"git_commit": "unknown"}})
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "abcdef1234567")
+    assert client.get("/model_info").json()["meta"]["git_commit"] == "abcdef1"

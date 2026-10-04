@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
 import joblib
@@ -74,8 +75,11 @@ class ModelService:
         return dict(self.b["cluster_profiles"][new_id])
 
     def info(self) -> dict:
+        meta = dict(self.b["meta"])
+        if meta.get("git_commit") in (None, "unknown") and os.getenv("RENDER_GIT_COMMIT"):
+            meta["git_commit"] = os.environ["RENDER_GIT_COMMIT"][:7]  # commit of the running deploy
         return {
-            "meta": self.b["meta"],
+            "meta": meta,
             "features": self.b["features"],
             "risk_thresholds": self.b["risk_thresholds"],
             "cluster_profiles": self.b["cluster_profiles"],
