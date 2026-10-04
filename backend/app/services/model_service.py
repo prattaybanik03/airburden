@@ -10,10 +10,12 @@ import sklearn
 
 from ml.data import FEATURES, POLLUTANTS
 
-DISCLAIMER = (
+DISCLAIMER_BASE = (
     "Exploratory estimate from a model trained on country-level data. "
-    "It is not validated for unseen countries and is not a medical or policy tool; see /model_info."
+    "It is not validated for unseen countries and is not a medical or policy tool"
 )
+DISCLAIMER = f"{DISCLAIMER_BASE}; see /model_info."
+INFO_NOTE = f"{DISCLAIMER_BASE}."
 
 
 log = logging.getLogger("airburden.model")

@@ -9,7 +9,7 @@ from app.schemas import (
     FeaturesRequest,
     RiskResponse,
 )
-from app.services.model_service import DISCLAIMER, ModelService, UnknownInput
+from app.services.model_service import DISCLAIMER, INFO_NOTE, ModelService, UnknownInput
 
 router = APIRouter(tags=["models"])
 
@@ -46,4 +46,4 @@ def get_cluster_info(body: ClusterRequest, svc: ModelService = Depends(get_servi
 
 @router.get("/model_info")
 def model_info(svc: ModelService = Depends(get_service)):
-    return svc.info() | {"disclaimer": DISCLAIMER}
+    return svc.info() | {"disclaimer": INFO_NOTE}
