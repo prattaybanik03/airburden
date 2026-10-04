@@ -1,7 +1,7 @@
 .PHONY: install train evaluate test lint backend frontend
 
 install:
-	cd backend && python -m pip install -r requirements-dev.txt
+	cd backend && python -m pip install -r requirements-dev.lock
 	cd frontend && npm install
 
 train:           ## build backend/artifacts/model_bundle.joblib from data/dataset.json

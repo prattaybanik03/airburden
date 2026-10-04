@@ -3,14 +3,16 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /srv
 
-COPY backend/requirements.txt backend/requirements.txt
-RUN pip install --no-cache-dir -r backend/requirements.txt
+COPY backend/requirements.lock backend/requirements.lock
+RUN pip install --no-cache-dir -r backend/requirements.lock
 
 COPY --chmod=a+rX backend backend
 COPY --chmod=a+rX data data
 
 # Models are rebuilt from the dataset at image build time, never committed.
 WORKDIR /srv/backend
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
 RUN python -m ml.train
 
 RUN useradd --system --no-create-home app
