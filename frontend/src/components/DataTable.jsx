@@ -22,9 +22,9 @@ const DataTable = ({ data }) => {
     { field: "country", headerName: "Country", flex: 1 },
     { field: "year", headerName: "Year", flex: 0.5 },
     { field: "region_name", headerName: "Region", flex: 1 },
-    { field: "exposure_mean_no2", headerName: "NO2 (µg/m3)", flex: 0.8 },
-    { field: "exposure_mean_ozone", headerName: "Ozone (ppb)", flex: 0.8 },
-    { field: "exposure_mean_pm25", headerName: "PM2.5 (µg/m3)", flex: 0.8 },
+    { field: "exposure_mean_no2", headerName: "NO2 (source units)", flex: 0.8 },
+    { field: "exposure_mean_ozone", headerName: "Ozone (source units)", flex: 0.8 },
+    { field: "exposure_mean_pm25", headerName: "PM2.5 (source units)", flex: 0.8 },
     { field: "health_burden_mean", headerName: "Health Burden (DALY)", flex: 1 },
   ];
 

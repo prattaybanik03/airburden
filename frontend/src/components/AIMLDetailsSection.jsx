@@ -28,13 +28,13 @@ const AIMLDetailsSection = () => {
               <strong>Year:</strong> The year for which predictions are to be made (e.g., 2023).
             </Typography>
             <Typography variant="body1">
-              <strong>Exposure NO<sub>2</sub>:</strong> The nitrogen dioxide exposure value (e.g., 123 µg/m³).
+              <strong>Exposure NO<sub>2</sub>:</strong> The nitrogen dioxide exposure value (e.g., 123, in the dataset's source units).
             </Typography>
             <Typography variant="body1">
-              <strong>Exposure Ozone:</strong> The ozone exposure value (e.g., 566 µg/m³).
+              <strong>Exposure Ozone:</strong> The ozone exposure value (e.g., 566, in the dataset's source units).
             </Typography>
             <Typography variant="body1">
-              <strong>Exposure PM<sub>2.5</sub>:</strong> The fine particulate matter (PM<sub>2.5</sub>) exposure value (e.g., 642 µg/m³).
+              <strong>Exposure PM<sub>2.5</sub>:</strong> The fine particulate matter (PM<sub>2.5</sub>) exposure value (e.g., 642, in the dataset's source units).
             </Typography>
             <Typography variant="body1">
               <strong>Region Name:</strong> The region for the analysis (e.g., "Eastern Europe").

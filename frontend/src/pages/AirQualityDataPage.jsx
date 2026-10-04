@@ -7,6 +7,8 @@ import {
   Grid,
   Card,
   CardContent,
+  Alert,
+  Link,
 } from "@mui/material";
 import DataTable from "../components/DataTable";
 import HistoricalPollutantChart from "../components/HistoricalPollutantChart";
@@ -36,6 +38,15 @@ const AirQualityDataPage = () => {
         <Typography variant="subtitle1" align="center" gutterBottom>
           Visualize air pollutant exposure and health burden data interactively.
         </Typography>
+
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          About 7-8% of each pollutant column in this extract is corrupted (lost decimal points), so pollutant units are shown as
+          &quot;source units&quot; and some country names lost punctuation. The health-burden column is unaffected.{" "}
+          <Link href="https://github.com/prattaybanik03/airburden/blob/main/docs/data-quality.md" target="_blank" rel="noopener">
+            Read the data-quality notes
+          </Link>
+          .
+        </Alert>
 
         <Grid container spacing={4}>
           {/* Data Table */}
