@@ -22,3 +22,9 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# experiment tracking, DVC, coverage
+backend/mlflow.db
+backend/mlruns/
+.coverage
+coverage.xml

@@ -1,0 +1,183 @@
+schema: '2.0'
+stages:
+  validate:
+    cmd: python -m ml.pipeline validate --no-track
+    deps:
+    - path: ../data/dataset.json
+      hash: md5
+      md5: 1cea471ed5c1e19f0f5030184815ec25
+      size: 2616423
+    - path: ml/config.py
+      hash: md5
+      md5: 19e31ed292de9ba64bad0fa81aa077dd
+      size: 4254
+    - path: ml/contracts.py
+      hash: md5
+      md5: 92ff749a6c6aa647389618c721a622c3
+      size: 4378
+    - path: ml/data.py
+      hash: md5
+      md5: 8aabdb7631fc8e9f439b54d0d54b4ede
+      size: 5493
+    - path: ml/pipeline.py
+      hash: md5
+      md5: 6366ccf9b02889776592aceae9c8d57b
+      size: 10888
+    params:
+      params.yaml:
+        data:
+          path: ../data/dataset.json
+          expected_sha256: 
+            337f1e0608fd2394eb5c27c4e39b5e86385ab2a6398630bbf2f08bd146bd85d3
+          drop_regions:
+          - Australia
+          pollutant_repair: none
+          suspicious_ratio: 0.3
+          max_suspicious_share: 0.1
+    outs:
+    - path: artifacts/data/validated.parquet
+      hash: md5
+      md5: 9351b1a5686bbbac74eda3d5e545da2e
+      size: 49448
+    - path: artifacts/reports/data_validation.json
+      hash: md5
+      md5: c8a232ab20b19258c7ffaacd6c1951c6
+      size: 880
+  train:
+    cmd: python -m ml.pipeline train --no-track
+    deps:
+    - path: artifacts/data/validated.parquet
+      hash: md5
+      md5: 9351b1a5686bbbac74eda3d5e545da2e
+      size: 49448
+    - path: ml/config.py
+      hash: md5
+      md5: 19e31ed292de9ba64bad0fa81aa077dd
+      size: 4254
+    - path: ml/pipeline.py
+      hash: md5
+      md5: 6366ccf9b02889776592aceae9c8d57b
+      size: 10888
+    - path: ml/train.py
+      hash: md5
+      md5: c38f1c5d38c71ea8562e83b0b75d49d5
+      size: 9083
+    params:
+      params.yaml:
+        train:
+          seed: 42
+          regressor:
+            n_estimators: 200
+            max_depth:
+            min_samples_leaf: 1
+          classifier:
+            n_estimators: 200
+            max_depth:
+            min_samples_leaf: 1
+          n_clusters: 3
+          drift_bins: 10
+    outs:
+    - path: artifacts/metadata.json
+      hash: md5
+      md5: 3bf3be92dd6b630f405df88556bc907a
+      size: 2372
+    - path: artifacts/model_bundle.joblib
+      hash: md5
+      md5: 4f4741ede4ba6355b2ac3b6ffcd4cf3a
+      size: 21647470
+  evaluate:
+    cmd: python -m ml.pipeline evaluate --no-track
+    deps:
+    - path: artifacts/data/validated.parquet
+      hash: md5
+      md5: 9351b1a5686bbbac74eda3d5e545da2e
+      size: 49448
+    - path: ml/config.py
+      hash: md5
+      md5: 19e31ed292de9ba64bad0fa81aa077dd
+      size: 4254
+    - path: ml/evaluate.py
+      hash: md5
+      md5: 64243bf4b351ea6cdefab55f0a4282c1
+      size: 7643
+    - path: ml/pipeline.py
+      hash: md5
+      md5: 6366ccf9b02889776592aceae9c8d57b
+      size: 10888
+    params:
+      params.yaml:
+        evaluate:
+          seed: 42
+          n_estimators: 100
+          test_size: 0.3
+          n_group_folds: 5
+          temporal_test_years: 7
+        train:
+          seed: 42
+          regressor:
+            n_estimators: 200
+            max_depth:
+            min_samples_leaf: 1
+          classifier:
+            n_estimators: 200
+            max_depth:
+            min_samples_leaf: 1
+          n_clusters: 3
+          drift_bins: 10
+    outs:
+    - path: artifacts/reports/evaluation.json
+      hash: md5
+      md5: d204a9a7e18d764c2ef357fd1df66a39
+      size: 2362
+    - path: artifacts/reports/metrics.json
+      hash: md5
+      md5: b4acf13e50d17336461f8e3c45aee654
+      size: 319
+  gate:
+    cmd: python -m ml.pipeline gate
+    deps:
+    - path: artifacts/metadata.json
+      hash: md5
+      md5: 3bf3be92dd6b630f405df88556bc907a
+      size: 2372
+    - path: artifacts/model_bundle.joblib
+      hash: md5
+      md5: 4f4741ede4ba6355b2ac3b6ffcd4cf3a
+      size: 21647470
+    - path: artifacts/reports/metrics.json
+      hash: md5
+      md5: b4acf13e50d17336461f8e3c45aee654
+      size: 319
+    - path: ml/config.py
+      hash: md5
+      md5: 19e31ed292de9ba64bad0fa81aa077dd
+      size: 4254
+    - path: ml/gates.py
+      hash: md5
+      md5: 1f158fd3fedbd022b3fa54861409c8f8
+      size: 4451
+    - path: ml/pipeline.py
+      hash: md5
+      md5: 6366ccf9b02889776592aceae9c8d57b
+      size: 10888
+    params:
+      params.yaml:
+        gates:
+          min_r2_random: 0.85
+          min_r2_held_out: 0.15
+          min_r2_temporal: 0.6
+          min_accuracy_held_out: 0.45
+          max_r2_held_out_std: 0.4
+        tracking:
+          enabled: true
+          experiment: airburden
+          uri: sqlite:///mlflow.db
+    outs:
+    - path: artifacts/model_card.md
+      hash: md5
+      md5: 51aca8b2fd847e630be30cda356d7234
+      size: 2310
+    - path: artifacts/reports/gate.json
+      hash: md5
+      md5: a8367c08839e11331a09daeb1dc47ef8
+      size: 876
