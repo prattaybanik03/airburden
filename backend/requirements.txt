@@ -7,3 +7,4 @@ numpy>=2.0
 pandas>=2.2
 scikit-learn>=1.5
 joblib>=1.4
+prometheus-client>=0.21
