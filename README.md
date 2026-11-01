@@ -10,7 +10,11 @@ AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to he
 
 **Live demo:** [airburden.onrender.com](https://airburden.onrender.com) (API docs: [airburden-api.onrender.com/docs](https://airburden-api.onrender.com/docs)). Hosted on free instances, so the first request after a pause can take about a minute.
 
-![Prediction screen](docs/img/prediction.png)
+![AirBurden home page](docs/img/home.png)
+
+| Model workbench | Data explorer |
+|---|---|
+| ![Model workbench](docs/img/prediction.png) | ![Data explorer](docs/img/explorer.png) |
 
 ## The pipeline
 
@@ -157,7 +161,7 @@ The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.
 * Re-source the dataset from the publisher and fix the corrupted pollutant values ([docs/data-quality.md](docs/data-quality.md)). An opt-in interpolation repair exists; [EXP-001](docs/experiments.md) shows it does not close the unseen-country gap.
 * Add a DVC remote and an MLflow server so caches and runs are shared, and schedule `ml.drift` over logged requests.
 * Try within-country (panel / fixed-effects) modelling and add covariates such as income and age structure.
-* Frontend: code-split the 7.8 MB bundle (Plotly + dataset), clear the inherited lint errors, replace the unmaintained `react-swipeable-views`.
+* Frontend: add a dark mode and browser end-to-end tests in CI.
 
 ## Security
 
