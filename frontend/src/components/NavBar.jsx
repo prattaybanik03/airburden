@@ -1,133 +1,128 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { Link as RouterLink, NavLink, useLocation } from "react-router-dom";
 import {
   AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
   Box,
+  Button,
+  Container,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  Toolbar,
+  useScrollTrigger,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Link, useLocation } from "react-router-dom";
+import { alpha } from "@mui/material/styles";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import { tokens } from "../theme";
+import { NAV_LINKS, REPO_URL } from "../utils/site";
+import Brand from "./Brand";
 
-const Navbar = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const location = useLocation();
-
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
-      return;
-    }
-    setIsDrawerOpen(open);
-  };
-
-  const drawerLinkStyle = {
-    textDecoration: "none",
-    color: "#FFFFFF",
-    fontSize: "18px",
-    padding: "10px 20px",
-    transition: "all 0.3s ease",
-    "&:hover": {
-      backgroundColor: "#333",
-      borderRadius: "5px",
-    },
-  };
-
-  const links = [
-    { text: "Home", path: "/" },
-    { text: "DataPage", path: "/air-quality-data" },
-    { text: "AI/ML", path: "/ai-ml" },
-    { text: "About", path: "/about" },
-  ];
+const NavBar = () => {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 24 });
 
   return (
     <AppBar
-      position="sticky"
+      position="fixed"
+      elevation={0}
       sx={{
-        backgroundColor: "#1C1C1E",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        transition: "background-color .25s ease, border-color .25s ease, backdrop-filter .25s ease",
+        backgroundColor: scrolled ? alpha(tokens.ink, 0.82) : "transparent",
+        backdropFilter: scrolled ? "saturate(160%) blur(14px)" : "none",
+        borderBottom: `1px solid ${scrolled ? alpha("#fff", 0.08) : "transparent"}`,
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between", alignItems: "center" }}>
-        {/* Logo */}
-        <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <img src="/logo.jpg" alt="Logo" style={{ height: "40px", marginRight: "10px" }} />
-          <Typography variant="h6" sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
-            AirBurden
-          </Typography>
-        </Box>
+      <Container maxWidth="lg">
+        <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 72 }, justifyContent: "space-between" }}>
+          <Brand />
 
-        {/* Hamburger Menu for Mobile */}
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          onClick={toggleDrawer(true)}
-          sx={{ display: { xs: "block", md: "none" } }}
-        >
-          <MenuIcon />
-        </IconButton>
-
-        {/* Links for Desktop */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
-          {links.map((link, index) => (
-            <Link
-              key={index}
-              to={link.path}
-              style={{
-                textDecoration: "none",
-                color: location.pathname === link.path ? "#1976D2" : "#FFFFFF",
-                padding: "0.5rem 1rem",
-                borderRadius: "5px",
-                fontWeight: location.pathname === link.path ? "bold" : "normal",
-                transition: "all 0.3s ease",
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ display: { xs: "none", md: "flex" } }}>
+            {NAV_LINKS.map((link) => (
+              <Button
+                key={link.path}
+                component={NavLink}
+                to={link.path}
+                end
+                sx={{
+                  color: alpha("#fff", 0.72),
+                  fontWeight: 550,
+                  px: 1.75,
+                  minHeight: 38,
+                  borderRadius: 2,
+                  "&:hover": { color: "#fff", backgroundColor: alpha("#fff", 0.06) },
+                  "&.active": { color: "#fff", backgroundColor: alpha("#fff", 0.1) },
+                }}
+              >
+                {link.text}
+              </Button>
+            ))}
+            <Box sx={{ width: 12 }} />
+            <Button
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener"
+              startIcon={<GitHubIcon />}
+              variant="outlined"
+              sx={{
+                color: "#fff",
+                minHeight: 38,
+                borderColor: alpha("#fff", 0.22),
+                "&:hover": { borderColor: alpha("#fff", 0.5), backgroundColor: alpha("#fff", 0.06) },
               }}
             >
-              {link.text}
-            </Link>
-          ))}
-        </Box>
-      </Toolbar>
+              GitHub
+            </Button>
+          </Stack>
 
-      {/* Drawer for Mobile */}
+          <IconButton aria-label="Open menu" onClick={() => setOpen(true)} sx={{ display: { md: "none" }, color: "#fff" }}>
+            <MenuRoundedIcon />
+          </IconButton>
+        </Toolbar>
+      </Container>
+
       <Drawer
-        anchor="left"
-        open={isDrawerOpen}
-        onClose={toggleDrawer(false)}
-        sx={{
-          "& .MuiDrawer-paper": {
-            backgroundColor: "#1C1C1E",
-            color: "#FFFFFF",
-          },
-        }}
+        anchor="right"
+        open={open}
+        onClose={() => setOpen(false)}
+        PaperProps={{ sx: { width: 280, backgroundColor: tokens.ink, color: "#fff", p: 2 } }}
       >
-        <Box
-          sx={{
-            width: 250,
-            padding: "20px",
-            backgroundColor: "#1C1C1E",
-            height: "100%",
-          }}
-          role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
-        >
-          <List>
-            {links.map((link, index) => (
-              <ListItem key={index} sx={{ padding: "10px 0" }}>
-                <Link to={link.path} style={drawerLinkStyle}>
-                  {link.text}
-                </Link>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Brand />
+          <IconButton aria-label="Close menu" onClick={() => setOpen(false)} sx={{ color: "#fff" }}>
+            <CloseRoundedIcon />
+          </IconButton>
+        </Stack>
+        <List onClick={() => setOpen(false)}>
+          {NAV_LINKS.map((link) => (
+            <ListItemButton
+              key={link.path}
+              component={RouterLink}
+              to={link.path}
+              selected={pathname === link.path}
+              sx={{
+                borderRadius: 2,
+                mb: 0.5,
+                "&.Mui-selected": { backgroundColor: alpha(tokens.teal, 0.25) },
+                "&.Mui-selected:hover": { backgroundColor: alpha(tokens.teal, 0.3) },
+              }}
+            >
+              <ListItemText primary={link.text} primaryTypographyProps={{ fontWeight: 600 }} />
+            </ListItemButton>
+          ))}
+          <ListItemButton component="a" href={REPO_URL} target="_blank" rel="noopener" sx={{ borderRadius: 2 }}>
+            <GitHubIcon sx={{ mr: 1.5, fontSize: 20 }} />
+            <ListItemText primary="GitHub" primaryTypographyProps={{ fontWeight: 600 }} />
+          </ListItemButton>
+        </List>
       </Drawer>
     </AppBar>
   );
 };
 
-export default Navbar;
+export default NavBar;

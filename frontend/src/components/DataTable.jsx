@@ -1,178 +1,121 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Button,
-  Grid,
-} from "@mui/material";
+import { useMemo, useState } from "react";
+import { Autocomplete, Box, Button, Grid, InputAdornment, MenuItem, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
+import { COUNTRIES, REGIONS, YEARS } from "../utils/dataset";
+import { tokens } from "../theme";
+
+const num = { type: "number", headerAlign: "right", align: "right" };
+const columns = [
+  { field: "country", headerName: "Country", flex: 1.2, minWidth: 150 },
+  { field: "year", headerName: "Year", width: 90, ...num, valueFormatter: (v) => v },
+  { field: "region_name", headerName: "Region", flex: 1.2, minWidth: 170 },
+  { field: "exposure_mean_no2", headerName: "NO₂", flex: 0.6, minWidth: 90, ...num },
+  { field: "exposure_mean_ozone", headerName: "Ozone", flex: 0.6, minWidth: 90, ...num },
+  { field: "exposure_mean_pm25", headerName: "PM2.5", flex: 0.6, minWidth: 90, ...num },
+  { field: "health_burden_mean", headerName: "DALY rate", description: "Health burden attributable to air pollution", flex: 0.8, minWidth: 120, ...num },
+];
+
+const csvCell = (v) => {
+  const s = v === null || v === undefined ? "" : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
 
 const DataTable = ({ data }) => {
-  const [filteredData, setFilteredData] = useState(data);
-  const [searchText, setSearchText] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("All");
-  const [selectedYear, setSelectedYear] = useState("All");
+  const [search, setSearch] = useState("");
+  const [country, setCountry] = useState(null);
+  const [region, setRegion] = useState("All");
+  const [year, setYear] = useState("All");
 
-  const columns = [
-    { field: "country", headerName: "Country", flex: 1 },
-    { field: "year", headerName: "Year", flex: 0.5 },
-    { field: "region_name", headerName: "Region", flex: 1 },
-    { field: "exposure_mean_no2", headerName: "NO2 (source units)", flex: 0.8 },
-    { field: "exposure_mean_ozone", headerName: "Ozone (source units)", flex: 0.8 },
-    { field: "exposure_mean_pm25", headerName: "PM2.5 (source units)", flex: 0.8 },
-    { field: "health_burden_mean", headerName: "Health Burden (DALY)", flex: 1 },
-  ];
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return data.filter(
+      (d) =>
+        (!country || d.country === country) &&
+        (region === "All" || d.region_name === region) &&
+        (year === "All" || d.year === Number(year)) &&
+        (!q || `${d.country} ${d.region_name} ${d.year} ${d.iso3}`.toLowerCase().includes(q))
+    );
+  }, [data, search, country, region, year]);
 
-  useEffect(() => {
-    let filtered = data;
+  const gridRows = useMemo(() => filtered.map((d) => ({ id: `${d.iso3}-${d.year}-${d.region_name}`, ...d })), [filtered]);
 
-    if (selectedCountry !== "All") {
-      filtered = filtered.filter((d) => d.country === selectedCountry);
-    }
-
-    if (selectedYear !== "All") {
-      filtered = filtered.filter((d) => d.year === parseInt(selectedYear));
-    }
-
-    if (searchText) {
-      filtered = filtered.filter((d) =>
-        Object.values(d)
-          .join(" ")
-          .toLowerCase()
-          .includes(searchText.toLowerCase())
-      );
-    }
-
-    setFilteredData(filtered);
-  }, [selectedCountry, selectedYear, searchText, data]);
-
-  const handleExport = () => {
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [
-        columns.map((col) => col.headerName).join(","),
-        ...filteredData.map((row) =>
-          columns.map((col) => row[col.field] || "").join(",")
-        ),
-      ].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "air_quality_data.csv");
-    document.body.appendChild(link); // Required for Firefox
-    link.click();
-    document.body.removeChild(link);
+  const exportCsv = () => {
+    const header = ["Country", "ISO3", "Year", "Region", "NO2 (source units)", "Ozone (source units)", "PM2.5 (source units)", "Health burden (DALY rate)"];
+    const body = filtered.map((d) =>
+      [d.country, d.iso3, d.year, d.region_name, d.exposure_mean_no2, d.exposure_mean_ozone, d.exposure_mean_pm25, d.health_burden_mean].map(csvCell).join(",")
+    );
+    const blob = new Blob([[header.join(","), ...body].join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "airburden_data.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <Box
-      sx={{
-        border: "1px solid #e0e0e0",
-        borderRadius: 2,
-        overflow: "hidden",
-        boxShadow: 2,
-        margin: "1rem 0",
-        padding: "1rem",
-      }}
-    >
-      <Typography
-        variant="h6"
-        sx={{
-          textAlign: "left",
-          marginBottom: 2,
-          paddingLeft: "8px",
-          fontWeight: "bold",
-        }}
-      >
-        Data Table
-      </Typography>
-
-      {/* Filters */}
-      <Grid
-        container
-        spacing={2}
-        sx={{
-          marginBottom: 2,
-          alignItems: "center",
-        }}
-      >
-        <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Select Country</InputLabel>
-            <Select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {[...new Set(data.map((d) => d.country))].map((country) => (
-                <MenuItem key={country} value={country}>
-                  {country}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <FormControl fullWidth>
-            <InputLabel>Select Year</InputLabel>
-            <Select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <MenuItem value="All">All</MenuItem>
-              {[...new Set(data.map((d) => d.year))].map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
+    <Box>
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
+        <Grid item xs={12} md={3}>
           <TextField
-            label="Search"
-            variant="outlined"
             fullWidth
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            size="small"
+            placeholder="Search country, region, year"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{ startAdornment: <InputAdornment position="start"><SearchRoundedIcon fontSize="small" /></InputAdornment> }}
           />
         </Grid>
-
-        <Grid item xs={12} sm={6} md={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleExport}
-            fullWidth
-          >
+        <Grid item xs={12} sm={4} md={3}>
+          <Autocomplete size="small" options={COUNTRIES} value={country} onChange={(_, v) => setCountry(v)} renderInput={(p) => <TextField {...p} label="Country" />} />
+        </Grid>
+        <Grid item xs={12} sm={4} md={3}>
+          <TextField select fullWidth size="small" label="Region" value={region} onChange={(e) => setRegion(e.target.value)}>
+            <MenuItem value="All">All regions</MenuItem>
+            {REGIONS.map((r) => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+        <Grid item xs={12} sm={4} md={1}>
+          <TextField select fullWidth size="small" label="Year" value={year} onChange={(e) => setYear(e.target.value)}>
+            <MenuItem value="All">All</MenuItem>
+            {YEARS.map((y) => (
+              <MenuItem key={y} value={y}>
+                {y}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <Button fullWidth variant="outlined" startIcon={<FileDownloadRoundedIcon />} onClick={exportCsv} sx={{ minHeight: 40 }}>
             Export CSV
           </Button>
         </Grid>
       </Grid>
 
-      {/* Data Grid */}
-      <Box sx={{ height: { xs: 300, sm: 400, md: 500 } }}>
+      <Box sx={{ height: 560 }}>
         <DataGrid
-          rows={filteredData.map((d, id) => ({ id, ...d }))}
+          rows={gridRows}
           columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          disableSelectionOnClick
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+          pageSizeOptions={[10, 25, 50, 100]}
+          disableRowSelectionOnClick
+          density="comfortable"
           sx={{
-            "& .MuiDataGrid-columnHeaderTitle": {
-              fontWeight: "bold",
-            },
-            "& .MuiDataGrid-cell": {
-              textAlign: "center",
-            },
+            border: `1px solid ${tokens.border}`,
+            borderRadius: 3,
+            fontVariantNumeric: "tabular-nums",
+            "--DataGrid-containerBackground": "#F8FAFC",
+            "& .MuiDataGrid-columnHeaderTitle": { fontWeight: 700, color: "#334155" },
+            "& .MuiDataGrid-row:hover": { backgroundColor: "#F8FAFC" },
+            "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": { outline: "none" },
           }}
         />
       </Box>

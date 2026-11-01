@@ -1,6 +1,22 @@
-html, body, #root {
-  height: 100%; /* Ensure the entire viewport height is used */
+html,
+body,
+#root {
+  min-height: 100%;
   margin: 0;
+}
+
+#root {
   display: flex;
   flex-direction: column;
+  overflow-x: clip; /* no horizontal scroll from decorative glows */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

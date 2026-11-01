@@ -1,38 +1,40 @@
-import React, { useRef } from "react";
+import { Suspense, lazy, useRef } from "react";
+import { Box, Container, Skeleton } from "@mui/material";
 import HeroSection from "../components/HeroSection";
 import CardsSection from "../components/CardsSection";
-import DetailsSection from "../components/DetailsSection";
+import GlossarySection from "../components/GlossarySection";
 import AirQualitySection from "../components/AirQualitySection";
+import PipelineSection from "../components/PipelineSection";
 import HealthNewsSection from "../components/HealthNewsSection";
-import ChoroplethMapHomepage from "../components/ChoroplethMapHomepage";
 import FAQSection from "../components/FAQSection";
-import data from "@data/dataset.json";
+
+// Plotly and the dataset are large: load the map after the hero has painted.
+const ChoroplethMapHomepage = lazy(() => import("../components/ChoroplethMapHomepage"));
+
+const MapPlaceholder = () => (
+  <Container maxWidth="lg" sx={{ py: 12 }}>
+    <Skeleton variant="rounded" height={520} sx={{ borderRadius: 4 }} />
+  </Container>
+);
 
 const HomePage = () => {
   const airQualityRef = useRef(null);
 
-  const handleScrollToAirQuality = () => {
-    airQualityRef.current.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
-    <div>
-      {/* Hero Section */}
-      <HeroSection onScrollToAirQuality={handleScrollToAirQuality} />
-
-      {/* Cards Section */}
+    <>
+      <HeroSection onScrollToAirQuality={() => airQualityRef.current?.scrollIntoView({ behavior: "smooth" })} />
       <CardsSection />
-      <DetailsSection />
-      {/* Air Quality Section */}
-      <div ref={airQualityRef}>
+      <Suspense fallback={<MapPlaceholder />}>
+        <ChoroplethMapHomepage />
+      </Suspense>
+      <GlossarySection />
+      <Box ref={airQualityRef} sx={{ scrollMarginTop: 64 }}>
         <AirQualitySection />
-      </div>
-      <ChoroplethMapHomepage data={data} />
-
-    <HealthNewsSection />
-    <FAQSection />
-     
-    </div>
+      </Box>
+      <PipelineSection />
+      <HealthNewsSection />
+      <FAQSection />
+    </>
   );
 };
 

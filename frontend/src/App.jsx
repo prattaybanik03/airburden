@@ -1,63 +1,51 @@
-import React, { useState } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
-import { CssBaseline, Box, CircularProgress, Backdrop } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
-import HomePage from "./pages/HomePage";
-import AirQualityDataPage from "./pages/AirQualityDataPage";
-import AiMlPage from "./pages/AiMlPage";
-import AboutPage from "./pages/AboutPage";
 import ScrollToTop from "./components/ScrollToTop";
-import ScrollDownIndicator from "./components/ScrollDownIndicator";
+import HomePage from "./pages/HomePage";
 
-const LoadingAnimation = () => {
-  const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+// Heavier pages (Plotly, the data grid, the full dataset) load on demand, so the home page paints fast.
+const AirQualityDataPage = lazy(() => import("./pages/AirQualityDataPage"));
+const AiMlPage = lazy(() => import("./pages/AiMlPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
-  React.useEffect(() => {
-    // Show loading animation for route changes
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500); // Set the loading duration (in ms)
-    return () => clearTimeout(timer);
-  }, [location]);
-
-  return (
-    <Backdrop
-      open={isLoading}
-      sx={{
-        color: "#fff",
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <CircularProgress color="inherit" />
-      <Box mt={2}>Loading...</Box>
-    </Backdrop>
-  );
+/** Start every new page at the top, but let in-page anchors (#choropleth-map) scroll to their target. */
+const ScrollReset = () => {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (!hash) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname, hash]);
+  return null;
 };
 
-const App = () => {
-  return (
-    <Router>
-      <CssBaseline />
-      <ScrollToTop />
-      <LoadingAnimation /> {/* Add loading animation */}
-      <ScrollDownIndicator /> {/* Add the scroll down indicator */}
-      <Box id="back-to-top-anchor">
-        <NavBar />
-      </Box>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/air-quality-data" element={<AirQualityDataPage />} />
-        <Route path="/ai-ml" element={<AiMlPage />} />
-        <Route path="/about" element={<AboutPage />} />
-      </Routes>
-      <Footer />
-    </Router>
-  );
-};
+const PageFallback = () => (
+  <Box sx={{ minHeight: "100vh", pt: "72px" }}>
+    <LinearProgress sx={{ borderRadius: 0, height: 3 }} />
+  </Box>
+);
+
+const App = () => (
+  <Router>
+    <ScrollReset />
+    <Box id="back-to-top-anchor" />
+    <NavBar />
+    <Box component="main" sx={{ flex: 1 }}>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/air-quality-data" element={<AirQualityDataPage />} />
+          <Route path="/ai-ml" element={<AiMlPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </Box>
+    <Footer />
+    <ScrollToTop />
+  </Router>
+);
 
 export default App;

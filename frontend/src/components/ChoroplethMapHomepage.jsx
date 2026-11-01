@@ -1,73 +1,66 @@
-import React from "react";
-import { Box, Card, CardContent, Typography } from "@mui/material";
+import { useMemo, useState } from "react";
+import { Box, Card, Slider, Stack, Typography } from "@mui/material";
 import Plot from "react-plotly.js";
+import data from "@data/dataset.json";
+import { burdenScale, chartConfig, colorbar, geoLayout } from "../utils/plotly";
+import { Section, SectionHeader } from "./ui";
 
-const ChoroplethMapHomepage = ({ data }) => {
-  const chartData = [
-    {
-      type: "choropleth",
-      locationmode: "country names",
-      locations: data.map((d) => d.country),
-      z: data.map((d) => d.health_burden_mean),
-      text: data.map(
-        (d) => `${d.country}<br>Health Burden (DALY): ${d.health_burden_mean}`
-      ),
-      colorscale: "Reds",
-      showscale: true,
-      hoverinfo: "location+z",
-    },
-  ];
+const YEARS = [...new Set(data.map((d) => d.year))].sort((a, b) => a - b);
+// The source lists Australia twice (once as a pseudo-region); keep one row per country-year.
+const rows = data.filter((d) => d.region_name !== "Australia");
+
+const ChoroplethMapHomepage = () => {
+  const [year, setYear] = useState(YEARS[YEARS.length - 1]);
+  const yearRows = useMemo(() => rows.filter((d) => d.year === year), [year]);
 
   return (
-    <Card
-      elevation={4}
-      sx={{
-        margin: "1rem auto",
-        maxWidth: "600px",
-        border: "1px solid #e0e0e0",
-        borderRadius: 2,
-        boxShadow: 2,
-      }}
-    >
-      <CardContent>
-      <Typography
-        variant="h5"
-        sx={{
-          textAlign: "center",
-          fontWeight: "bold",
-          color: "black",
-          marginBottom: "1rem",
-        }}
-      >
-        Global Health Burden Overview
-      </Typography>
-        <Box
-          sx={{
-            height: "300px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+    <Section id="global-map">
+      <SectionHeader
+        eyebrow="Global picture"
+        title="Where air pollution costs the most health"
+        subtitle="Health burden attributable to air pollution (DALY rate) by country. Drag the slider to move through time."
+      />
+      <Card sx={{ p: { xs: 1.5, md: 3 } }}>
+        <Box sx={{ height: { xs: 280, sm: 380, md: 480 } }}>
           <Plot
-            data={chartData}
-            layout={{
-              geo: {
-                showframe: false,
-                showcountries: true,
-                projection: { type: "equirectangular" },
+            data={[
+              {
+                type: "choropleth",
+                locationmode: "ISO-3",
+                locations: yearRows.map((d) => d.iso3),
+                z: yearRows.map((d) => d.health_burden_mean),
+                text: yearRows.map((d) => d.country),
+                hovertemplate: "<b>%{text}</b><br>%{z:,} DALY rate<extra></extra>",
+                colorscale: burdenScale,
+                zmin: 0,
+                zmax: 16000,
+                marker: { line: { color: "#fff", width: 0.4 } },
+                colorbar: colorbar("DALY rate"),
               },
-              margin: { t: 0, l: 0, r: 0, b: 0 },
-            }}
-            config={{
-              displayModeBar: false,
-              responsive: true,
-            }}
+            ]}
+            layout={geoLayout()}
+            config={chartConfig}
+            useResizeHandler
             style={{ width: "100%", height: "100%" }}
           />
         </Box>
-      </CardContent>
-    </Card>
+        <Stack direction="row" spacing={3} alignItems="center" sx={{ px: { xs: 1.5, md: 2 }, pt: 2 }}>
+          <Typography className="tabular" sx={{ fontWeight: 800, fontSize: "1.6rem", minWidth: 64 }}>
+            {year}
+          </Typography>
+          <Slider
+            aria-label="Year"
+            value={year}
+            min={YEARS[0]}
+            max={YEARS[YEARS.length - 1]}
+            step={1}
+            marks={[{ value: YEARS[0], label: String(YEARS[0]) }, { value: 2005, label: "2005" }, { value: YEARS[YEARS.length - 1], label: String(YEARS[YEARS.length - 1]) }]}
+            onChange={(_, v) => setYear(v)}
+            sx={{ flex: 1, mr: 2 }}
+          />
+        </Stack>
+      </Card>
+    </Section>
   );
 };
 
