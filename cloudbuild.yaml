@@ -1,0 +1,23 @@
+# Google Cloud Build: builds the API image (which runs the gated ML pipeline) and pushes it to Artifact Registry.
+#   gcloud builds submit --config cloudbuild.yaml --substitutions=_GIT_COMMIT=$(git rev-parse --short HEAD) .
+# See docs/deploy-gcp.md.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    env: ["DOCKER_BUILDKIT=1"]  # the Dockerfile uses COPY --chmod, which needs BuildKit
+    args:
+      - build
+      - --file=backend/Dockerfile
+      - --build-arg=GIT_COMMIT=${_GIT_COMMIT}
+      - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/api:${_GIT_COMMIT}
+      - --tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/api:latest
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/api:${_GIT_COMMIT}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/api:latest
+substitutions:
+  _REGION: australia-southeast1
+  _REPO: airburden
+  _GIT_COMMIT: manual
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 1200s

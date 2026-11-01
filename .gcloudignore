@@ -1,0 +1,17 @@
+# Files not uploaded by `gcloud builds submit` (keeps the upload small and secrets local).
+.git
+.github
+.gcloudignore
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+frontend/
+backend/artifacts/
+backend/mlruns/
+backend/mlflow.db
+**/.env
+.dvc/cache
+.dvc/tmp
+docs/img/
