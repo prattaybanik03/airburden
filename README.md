@@ -1,11 +1,11 @@
 # AirBurden
 
-**A production-style machine learning system: data validation, model training and evaluation, a containerised inference API and an interactive dashboard.**
+**An end-to-end ML system with production MLOps: data contracts, a reproducible DVC pipeline, MLflow experiment tracking, release gates, a monitored model-serving API and an interactive dashboard.**
 
 [![CI](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml/badge.svg)](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.12-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.12-blue) ![DVC](https://img.shields.io/badge/DVC-pipeline-945DD6) ![MLflow](https://img.shields.io/badge/MLflow-tracking-0194E2) ![pandera](https://img.shields.io/badge/pandera-data%20contracts-555) ![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
 
-AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: data preparation, model training, rigorous evaluation, a validated REST API, a React dashboard, live data integrations, containerisation, automated tests and CI.
+AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: validated data, reproducible training, honest evaluation, gated releases, a versioned and observable REST API, a React dashboard, containerisation, 76 automated tests and CI.
 
 **Live demo:** [airburden.onrender.com](https://airburden.onrender.com) (API docs: [airburden-api.onrender.com/docs](https://airburden-api.onrender.com/docs)). Hosted on free instances, so the first request after a pause can take about a minute.
 
@@ -13,15 +13,21 @@ AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to he
 
 ## The pipeline
 
+One command (`python -m ml.pipeline run`, or `dvc repro`) takes the raw extract to a released model. Every number comes from
+[`params.yaml`](backend/params.yaml), and any failing stage stops the run, the CI job and the Docker build.
+
 | Stage | What it does | Where |
 |---|---|---|
-| 1. Data | Loads the State of Global Air extract, de-duplicates, builds one shared feature list | `backend/ml/data.py` |
-| 2. Data quality | Detects corrupted pollutant values (~7-8% per column) | `backend/ml/data_quality.py`, [docs](docs/data-quality.md) |
-| 3. Training | Random Forest regressor + classifier, K-Means profiles, saved as one joblib bundle | `backend/ml/train.py` |
-| 4. Evaluation | Random vs held-out-country vs temporal splits, with trivial baselines | `backend/ml/evaluate.py`, [docs](docs/evaluation.md) |
-| 5. Serving | FastAPI + Pydantic validation, `/health`, `/model_info`, timeouts and clean errors | `backend/app/` |
-| 6. Product | React 18 + Vite + MUI dashboard: predictions, choropleth map, charts, dataset explorer, live AQI and health news | `frontend/` |
-| 7. Delivery | Pinned lockfiles, model versioning, Dockerfiles + Compose, pre-commit, pytest suite (31 tests), ruff, GitHub Actions CI | `docker-compose.yml`, `backend/tests/`, `.github/workflows/` |
+| 1. Validate | Pins the dataset SHA-256, enforces **pandera data contracts** (types, ranges, regions, uniqueness, balanced panel) and a data-quality threshold, writes a validated parquet table and a lineage report | `ml/contracts.py`, `ml/pipeline.py` |
+| 2. Train | Seeded Random Forest regressor + classifier and K-Means profiles. Records params, data hashes, library versions, a **prediction fingerprint** for reproducibility, feature ranges and a drift reference profile | `ml/train.py` |
+| 3. Evaluate | Random vs held-out-country vs temporal splits, with trivial baselines | `ml/evaluate.py`, [docs](docs/evaluation.md) |
+| 4. Gate | **Release criteria** on the honest splits, a generated **model card**, one **MLflow** run (params, metrics, tags, artifacts) | `ml/gates.py`, `ml/tracking.py`, [model card](docs/model-card.md) |
+| Serve | FastAPI `/v1` (single + batch), extrapolation warnings, `/health` + `/ready`, **Prometheus** `/metrics`, JSON logs with request IDs | `backend/app/` |
+| Monitor | Per-feature PSI drift check against the training distribution | `ml/drift.py` |
+| Deliver | Layered lockfiles, multi-stage Docker image built *through* the gated pipeline, pytest (76 tests, 94% coverage), GitHub Actions (lint, tests, coverage gate, `dvc repro`, image smoke test) | `backend/Dockerfile`, `.github/workflows/` |
+
+The design and the reasons behind each piece are in **[docs/mlops.md](docs/mlops.md)**. The first tracked experiment
+(does repairing corrupted pollutant values help?) is in [docs/experiments.md](docs/experiments.md).
 
 ## Features
 
@@ -30,17 +36,20 @@ AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to he
 * **Exposure profiles** (K-Means, k = 3): which pollutant profile a set of exposures resembles.
 * **Live air quality** by city (OpenCage geocoding + IQAir) with US EPA AQI bands, and **health news** (NewsAPI).
 * **Dataset explorer** with filtering, charts and CSV export.
-* Pydantic-validated API, `/health` and `/model_info` endpoints, configurable CORS, Docker Compose deployment, GitHub Actions CI.
+* Versioned, Pydantic-validated API with batch predictions, readiness and Prometheus metrics; configurable CORS, Docker Compose deployment, GitHub Actions CI.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    UI["React 18 + Vite + MUI"] -- JSON --> API["FastAPI"]
-    API --> MS["ModelService"] --> B[("model_bundle.joblib")]
+    D[("data/dataset.json")] --> V["validate<br/>(contracts)"] --> T["train"] --> G{"gate"}
+    V --> E["evaluate"] --> G
+    P[["params.yaml"]] -.-> V & T & E & G
+    G --> MLF[("MLflow")] & B[("model_bundle.joblib<br/>+ model card")]
+    UI["React 18 + Vite + MUI"] -- JSON --> API["FastAPI /v1"]
+    API --> MS["ModelService"] --> B
+    API --> M["/metrics → Prometheus"]
     API --> EXT["OpenCage / IQAir / NewsAPI"]
-    D[("data/dataset.json")] --> T["ml/train.py"] --> B
-    D --> E["ml/evaluate.py"]
 ```
 
 More detail in [docs/architecture.md](docs/architecture.md).
@@ -65,8 +74,8 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.lock
 cp .env.example .env            # optional: add API keys for the live air-quality and news panels
-python -m ml.train              # builds artifacts/model_bundle.joblib from ../data/dataset.json (a few seconds)
-python -m uvicorn app.main:app --reload     # http://127.0.0.1:8000/docs
+python -m ml.pipeline run       # validate -> train -> evaluate -> gate (~30 s), logged to MLflow
+LOG_FORMAT=text python -m uvicorn app.main:app --reload     # http://127.0.0.1:8000/docs
 
 # 2. frontend (new terminal)
 cd frontend
@@ -79,12 +88,13 @@ The model endpoints work without any API keys. Only `/air_quality` and `/health_
 Example request:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/predict_health_burden -H 'Content-Type: application/json' -d '{
-  "features": {"year": 1990, "exposure_mean_no2": 123, "exposure_mean_ozone": 566, "exposure_mean_pm25": 642,
-               "country": "Afghanistan", "region_name": "Eastern Mediterranean Region"}}'
+curl -X POST http://127.0.0.1:8000/v1/predictions/health-burden -H 'Content-Type: application/json' -d '{
+  "year": 1990, "exposure_mean_no2": 123, "exposure_mean_ozone": 566, "exposure_mean_pm25": 642,
+  "country": "Afghanistan", "region_name": "Eastern Mediterranean Region"}'
 ```
 
-`make train`, `make evaluate`, `make test` and `make lint` wrap the common commands.
+Common commands: `make pipeline`, `make repro` (DVC), `make test`, `make cov`, `make lint`, `make mlflow` (tracking UI), `make drift FILE=…`.
+Run `make help` for the full list.
 
 ## Evaluation at a glance
 
@@ -99,10 +109,10 @@ Reproduce with `make evaluate`.
 ## Repository layout
 
 ```
-backend/    FastAPI app (app/), training + evaluation code (ml/), tests (tests/)
+backend/    FastAPI app (app/), pipeline code (ml/), params.yaml, dvc.yaml, tests (tests/)
 frontend/   React single-page app
 data/       State of Global Air extract + data card
-docs/       architecture, evaluation, data-quality finding, v1-vs-v2 write-up
+docs/       MLOps design, architecture, evaluation, experiments, model card, data quality, v1-vs-v2 write-up
 ```
 
 ## Revisiting my 2024 version
@@ -116,7 +126,7 @@ and an over-optimistic evaluation, and fixed them. The details are in [docs/v1-v
 | Why | model inputs were assembled in a different column order from training, and the output was un-scaled with the wrong scaler column | one shared feature list for training and serving, no scaler to invert, regression test |
 | Reported performance | R² ≈ 0.92 on a random split | R² 0.92 random, **0.31 on unseen countries**; does not beat a region average or "last value carried forward" |
 | Data | taken at face value | ~7-8% of each pollutant column is corrupted in the source extract ([details](docs/data-quality.md)) |
-| Tests | none | 31 backend tests + CI |
+| Tests | none | 76 backend tests (94% coverage) + CI |
 
 The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.md). In short: a random split on panel data lets the model recognise
 *which country it is looking at*. On countries it has never seen, pollutant exposure adds little. I'd rather show that than hide it.
@@ -124,7 +134,8 @@ The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.
 ## Limitations and roadmap
 
 * This is an **exploratory** model on ecological, country-level data. It is not a validated health tool and the API says so in every response.
-* Re-source the dataset from the publisher and fix the corrupted pollutant values ([docs/data-quality.md](docs/data-quality.md)).
+* Re-source the dataset from the publisher and fix the corrupted pollutant values ([docs/data-quality.md](docs/data-quality.md)). An opt-in interpolation repair exists; [EXP-001](docs/experiments.md) shows it does not close the unseen-country gap.
+* Add a DVC remote and an MLflow server so caches and runs are shared, and schedule `ml.drift` over logged requests.
 * Try within-country (panel / fixed-effects) modelling and add covariates such as income and age structure.
 * Frontend: code-split the 7.8 MB bundle (Plotly + dataset), clear the inherited lint errors, replace the unmaintained `react-swipeable-views`.
 

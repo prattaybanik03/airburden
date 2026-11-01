@@ -19,4 +19,8 @@ under a "µg/m3" label (about 64 µg/m3 is plausible; 640 is not).
   inventing numbers. My own quick attempt rescaled values using each country's median and changed the picture only a little (pollutants-only
   forecast R² 0.02 to 0.17, held-out countries 0.14 to 0.18), which is not enough to change the conclusions in [evaluation.md](evaluation.md).
 * The unit labels in the UI come from the source file and should not be trusted until the data is re-sourced.
+* Since 2.1 the pipeline enforces this as a check: if any column's suspicious share exceeds `data.max_suspicious_share` (10%), the
+  pipeline stops. It also offers an **opt-in** repair (`--set data.pollutant_repair=interpolate`) that replaces isolated drops with a
+  within-country interpolation. [EXP-001](experiments.md) measures it: pollutant-only models improve, unseen-country performance does not.
+  The default stays `none`.
 * Proper fix: re-download the original files from the publisher, load them with explicit numeric parsing, re-run `make evaluate`.
