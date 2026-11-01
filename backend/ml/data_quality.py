@@ -10,22 +10,16 @@ from __future__ import annotations
 
 import pandas as pd
 
-from ml.data import POLLUTANTS, TARGET, load_raw
+from ml.data import POLLUTANTS, TARGET, isolated_drops, load_raw
+
+__all__ = ["isolated_drops", "summary"]
 
 
-def isolated_drops(df: pd.DataFrame, column: str, ratio: float = 0.3) -> pd.Series:
-    """True where a value is below `ratio` x the previous AND the next year's value for the same country."""
-    df = df.sort_values(["country", "year"])
-    g = df.groupby("country")[column]
-    flag = (df[column] < ratio * g.shift(1)) & (df[column] < ratio * g.shift(-1))
-    return flag.reindex(df.index)
-
-
-def summary(df: pd.DataFrame | None = None) -> dict:
+def summary(df: pd.DataFrame | None = None, ratio: float = 0.3) -> dict:
     df = load_raw() if df is None else df
     out = {}
     for col in [*POLLUTANTS, TARGET]:
-        flag = isolated_drops(df, col)
+        flag = isolated_drops(df, col, ratio)
         out[col] = {"rows": int(flag.sum()), "share": round(float(flag.mean()), 4), "countries": int(df[flag.reindex(df.index)].country.nunique())}
     return out
 
