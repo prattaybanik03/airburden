@@ -22,6 +22,8 @@ class Settings:
     opencage_api_key: str | None = None
     news_api_key: str | None = None
     http_timeout: float = 10.0
+    log_level: str = "INFO"
+    log_format: str = "json"  # json | text
 
 
 @lru_cache
@@ -34,4 +36,6 @@ def get_settings() -> Settings:
         opencage_api_key=os.getenv("OPENCAGE_API_KEY"),
         news_api_key=os.getenv("NEWS_API_KEY"),
         http_timeout=float(os.getenv("HTTP_TIMEOUT", "10")),
+        log_level=os.getenv("LOG_LEVEL", "INFO"),
+        log_format=os.getenv("LOG_FORMAT", "json"),
     )
