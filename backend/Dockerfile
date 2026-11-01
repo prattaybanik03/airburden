@@ -4,7 +4,7 @@
 #            The build FAILS if the data breaks its contract or the model misses a release gate.
 #   runtime  slim serving image: API code + the gated model bundle, without pandera/pyarrow or the dataset.
 
-FROM python:3.12-slim AS train
+FROM python:3.15-slim AS train
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /srv
 COPY backend/requirements-train.lock backend/requirements-train.lock
@@ -17,7 +17,7 @@ ARG RENDER_GIT_COMMIT=
 ENV GIT_COMMIT=$GIT_COMMIT RENDER_GIT_COMMIT=$RENDER_GIT_COMMIT
 RUN python -m ml.pipeline run --no-track
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
     MODEL_PATH=/srv/backend/artifacts/model_bundle.joblib
 WORKDIR /srv/backend
