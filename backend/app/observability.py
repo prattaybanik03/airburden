@@ -40,6 +40,7 @@ class JsonFormatter(logging.Formatter):
         entry = {
             "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S"),
             "level": record.levelname,
+            "severity": record.levelname,  # read by Google Cloud Logging; harmless elsewhere
             "logger": record.name,
             "msg": record.getMessage(),
             "request_id": request_id_var.get(),

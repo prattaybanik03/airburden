@@ -95,3 +95,18 @@ def test_incompatible_bundle_is_not_served(bundle_dir, tmp_path, monkeypatch, pa
         assert c.get("/ready").status_code == 503
         assert c.post("/v1/predictions/health-burden", json=payload["features"]).status_code == 503
     get_settings.cache_clear()
+
+
+def test_json_logs_carry_request_id_and_severity():
+    import json
+    import logging
+
+    from app.observability import JsonFormatter, request_id_var
+
+    token = request_id_var.set("rid-1")
+    try:
+        line = JsonFormatter().format(logging.LogRecord("airburden.test", logging.WARNING, __file__, 1, "hello", None, None))
+    finally:
+        request_id_var.reset(token)
+    entry = json.loads(line)
+    assert entry["severity"] == "WARNING" and entry["request_id"] == "rid-1" and entry["msg"] == "hello"
