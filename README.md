@@ -3,6 +3,7 @@
 **An end-to-end ML system with production MLOps: data contracts, a reproducible DVC pipeline, MLflow experiment tracking, release gates, a monitored model-serving API and an interactive dashboard.**
 
 [![CI](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml/badge.svg)](https://github.com/prattaybanik03/airburden/actions/workflows/ci.yml)
+[![Security](https://github.com/prattaybanik03/airburden/actions/workflows/security.yml/badge.svg)](https://github.com/prattaybanik03/airburden/actions/workflows/security.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue) ![DVC](https://img.shields.io/badge/DVC-pipeline-945DD6) ![MLflow](https://img.shields.io/badge/MLflow-tracking-0194E2) ![pandera](https://img.shields.io/badge/pandera-data%20contracts-555) ![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
 
 AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: validated data, reproducible training, honest evaluation, gated releases, a versioned and observable REST API, a React dashboard, containerisation, 76 automated tests and CI.
@@ -93,6 +94,24 @@ curl -X POST http://127.0.0.1:8000/v1/predictions/health-burden -H 'Content-Type
   "country": "Afghanistan", "region_name": "Eastern Mediterranean Region"}'
 ```
 
+## API
+
+Interactive docs at `/docs` (OpenAPI). The model endpoints need no API keys.
+
+| Method and path | Purpose |
+|---|---|
+| `POST /v1/predictions/health-burden` | Estimated DALY rate, with `model_version` and out-of-range `warnings` |
+| `POST /v1/predictions/risk-level` | Low / Moderate / High risk with class probabilities |
+| `POST /v1/predictions/batch` | Burden and risk for up to 500 rows in one call |
+| `POST /v1/clusters/assign` | Nearest exposure profile |
+| `GET /v1/model` | Model metadata, data lineage, feature ranges, thresholds, clusters |
+| `GET /health`, `GET /ready` | Liveness, and readiness (503 until a compatible model is loaded) |
+| `GET /metrics` | Prometheus metrics |
+| `GET /air_quality`, `GET /health_news` | Live data (need API keys in `.env`) |
+
+The unversioned routes the dashboard uses (`/predict_health_burden`, …) are still served but are deprecated in favour of `/v1`.
+Every response carries `X-Request-ID` and `X-Model-Version` headers.
+
 Common commands: `make pipeline`, `make repro` (DVC), `make test`, `make cov`, `make lint`, `make mlflow` (tracking UI), `make drift FILE=…`.
 Run `make help` for the full list.
 
@@ -113,6 +132,7 @@ backend/    FastAPI app (app/), pipeline code (ml/), params.yaml, dvc.yaml, test
 frontend/   React single-page app
 data/       State of Global Air extract + data card
 docs/       MLOps design, architecture, evaluation, experiments, model card, data quality, v1-vs-v2 write-up
+.github/    CI and security workflows, Dependabot, branch and tag rulesets, CODEOWNERS
 ```
 
 ## Revisiting my 2024 version
@@ -138,6 +158,12 @@ The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.
 * Add a DVC remote and an MLflow server so caches and runs are shared, and schedule `ml.drift` over logged requests.
 * Try within-country (panel / fixed-effects) modelling and add covariates such as income and age structure.
 * Frontend: code-split the 7.8 MB bundle (Plotly + dataset), clear the inherited lint errors, replace the unmaintained `react-swipeable-views`.
+
+## Security
+
+`main` only changes through pull requests that pass every check (tests, pipeline gates, Docker smoke test, CodeQL). Force
+pushes are blocked, and dependencies are scanned and updated automatically. Please report vulnerabilities privately as described
+in [SECURITY.md](SECURITY.md), not in a public issue.
 
 ## Data and attribution
 
