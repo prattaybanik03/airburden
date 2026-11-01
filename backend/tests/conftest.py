@@ -38,3 +38,29 @@ def payload():
             "region_name": "Eastern Mediterranean Region",
         }
     }
+
+
+# ---- pipeline fixtures ----------------------------------------------------------------------------
+FAST = [
+    "train.regressor.n_estimators=15",
+    "train.classifier.n_estimators=15",
+    "evaluate.n_estimators=10",
+    "evaluate.n_group_folds=3",
+    "tracking.enabled=false",
+]
+
+
+@pytest.fixture(scope="session")
+def fast_cfg():
+    from ml.config import load_config
+
+    return load_config(overrides=FAST)
+
+
+@pytest.fixture(scope="session")
+def pipeline_run(tmp_path_factory, fast_cfg):
+    """One full validate -> train -> evaluate -> gate run with small forests, shared by the pipeline tests."""
+    from ml.pipeline import Paths, run
+
+    paths = Paths(tmp_path_factory.mktemp("pipeline"))
+    return paths, run(fast_cfg, paths, track=False)
