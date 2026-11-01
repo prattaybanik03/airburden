@@ -1,4 +1,4 @@
-FROM node:20-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /srv
 COPY frontend/package.json frontend/package-lock.json frontend/.npmrc frontend/
 RUN cd frontend && npm ci
