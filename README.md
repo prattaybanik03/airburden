@@ -67,7 +67,9 @@ More detail in [docs/architecture.md](docs/architecture.md).
 docker compose up --build     # API: http://localhost:8000/docs   UI: http://localhost:8080
 ```
 
-**Deploy**: [`render.yaml`](render.yaml) is a one-click Blueprint for free hosting; see [docs/deployment.md](docs/deployment.md).
+**Deploy**: [`render.yaml`](render.yaml) is a one-click Blueprint for free hosting ([docs/deployment.md](docs/deployment.md)). The API also runs on
+Google Cloud Run ([guide](docs/deploy-gcp.md)), and [docs/aws-architecture.md](docs/aws-architecture.md) is a production AWS design
+(ECS Fargate, CloudFront + WAF, OIDC CI/CD, blue/green, cost model and ADRs).
 
 **Local development**:
 
@@ -135,7 +137,7 @@ Reproduce with `make evaluate`.
 backend/    FastAPI app (app/), pipeline code (ml/), params.yaml, dvc.yaml, tests (tests/)
 frontend/   React single-page app
 data/       State of Global Air extract + data card
-docs/       MLOps design, architecture, evaluation, experiments, model card, data quality, v1-vs-v2 write-up
+docs/       MLOps design, architecture, AWS and GCP deployment, evaluation, experiments, model card, data quality, v1-vs-v2
 .github/    CI and security workflows, Dependabot, branch and tag rulesets, CODEOWNERS
 ```
 
