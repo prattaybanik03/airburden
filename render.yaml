@@ -6,7 +6,7 @@ services:
     plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
-    healthCheckPath: /health
+    healthCheckPath: /ready  # only route traffic once a gated model is loaded
     envVars:
       - key: CORS_ORIGINS
         sync: false          # set to the dashboard URL, e.g. https://airburden.onrender.com

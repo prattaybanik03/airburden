@@ -1,0 +1,66 @@
+# Reproducible pipeline DAG. `dvc repro` re-runs only the stages whose code, data or params changed;
+# `dvc params diff` / `dvc metrics diff` compare runs. Every stage is a plain CLI call, so it also runs without DVC.
+stages:
+  validate:
+    cmd: python -m ml.pipeline validate --no-track
+    deps:
+      - ml/pipeline.py
+      - ml/config.py
+      - ../data/dataset.json
+      - ml/contracts.py
+      - ml/data.py
+    params:
+      - data
+    outs:
+      - artifacts/data/validated.parquet
+      - artifacts/reports/data_validation.json:
+          cache: false
+
+  train:
+    cmd: python -m ml.pipeline train --no-track
+    deps:
+      - ml/pipeline.py
+      - ml/config.py
+      - artifacts/data/validated.parquet
+      - ml/train.py
+    params:
+      - train
+    outs:
+      - artifacts/model_bundle.joblib
+      - artifacts/metadata.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m ml.pipeline evaluate --no-track
+    deps:
+      - ml/pipeline.py
+      - ml/config.py
+      - artifacts/data/validated.parquet
+      - ml/evaluate.py
+    params:
+      - evaluate
+      - train
+    outs:
+      - artifacts/reports/evaluation.json:
+          cache: false
+    metrics:
+      - artifacts/reports/metrics.json:
+          cache: false
+
+  gate:
+    cmd: python -m ml.pipeline gate
+    deps:
+      - ml/pipeline.py
+      - ml/config.py
+      - artifacts/reports/metrics.json
+      - artifacts/metadata.json
+      - artifacts/model_bundle.joblib
+      - ml/gates.py
+    params:
+      - gates
+      - tracking
+    outs:
+      - artifacts/model_card.md:
+          cache: false
+      - artifacts/reports/gate.json:
+          cache: false
