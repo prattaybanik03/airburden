@@ -1,5 +1,13 @@
 # Deployment
 
+| Target | Status | Guide |
+|---|---|---|
+| Render (API + dashboard) | live | this page |
+| Google Cloud Run (API) | step-by-step guide, `cloudbuild.yaml` included | [deploy-gcp.md](deploy-gcp.md) |
+| AWS (production design) | reference architecture, not deployed | [aws-architecture.md](aws-architecture.md) |
+
+## Render
+
 The repository ships a [Render Blueprint](../render.yaml) that deploys both services on free plans.
 
 1. In Render choose **New > Blueprint** and select this repository.
@@ -8,7 +16,8 @@ The repository ships a [Render Blueprint](../render.yaml) that deploys both serv
    * `airburden`: `VITE_BACKEND_URL` (the API URL).
 3. Deploy. The API image trains the model from `data/dataset.json` at build time, so no artifacts are stored in the repository.
 
-Free instances sleep when idle, so the first request after a pause can take about a minute.
+Free instances sleep when idle, so the first request after a pause can take about a minute. Static sites do not sleep,
+so moving only the API to [Cloud Run](deploy-gcp.md) removes most of that delay.
 
 The same images run anywhere with `docker compose up --build`.
 
