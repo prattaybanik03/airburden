@@ -1,4 +1,8 @@
-# Weekly dependency update PRs. Each one must pass CI (tests, pipeline gates, Docker smoke test) before merging.
+# Dependency update PRs. Each one must pass CI (tests, pipeline gates, Docker smoke test) before merging.
+#
+# Policy: only minor and patch updates are proposed automatically for application dependencies and base
+# images. Major upgrades (React, MUI, Vite, Node, Python) change APIs and are done deliberately, in their
+# own PR, not by a bot. GitHub Actions majors are allowed: they are low-risk and keep runners supported.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -17,13 +21,27 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # 0.x packages treat minor bumps as breaking; take only patches automatically
+      - dependency-name: "eslint-plugin-react-refresh"
+        update-types: ["version-update:semver-minor"]
 
   - package-ecosystem: docker
     directory: /backend
     schedule:
       interval: monthly
+    ignore:
+      # The ML stack, lockfiles and CI are pinned to Python 3.12; move to a newer Python on purpose.
+      - dependency-name: "python"
+        versions: [">= 3.13"]
 
   - package-ecosystem: docker
     directory: /frontend
     schedule:
       interval: monthly
+    ignore:
+      # node: stay on the 20 LTS line used by CI; nginx: minor and patch updates only
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
