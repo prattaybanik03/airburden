@@ -1,0 +1,48 @@
+# Single source of truth for the ML pipeline (read by ml/config.py, tracked by DVC).
+# Override any value from the command line:  python -m ml.pipeline run --set train.regressor.n_estimators=50
+
+data:
+  path: ../data/dataset.json
+  # Pin the exact dataset version. The pipeline refuses to run on a different file (set to null to skip).
+  expected_sha256: 337f1e0608fd2394eb5c27c4e39b5e86385ab2a6398630bbf2f08bd146bd85d3
+  # "Australia" is listed twice per year in the extract (as a pseudo-region and under Western Pacific).
+  drop_regions: [Australia]
+  # How to treat pollutant values that look corrupted (see docs/data-quality.md):
+  #   none        keep them (default; matches the published evaluation)
+  #   interpolate replace isolated drops with a within-country linear interpolation
+  pollutant_repair: none
+  suspicious_ratio: 0.3          # a value is suspicious if < ratio x BOTH neighbouring years
+  max_suspicious_share: 0.10     # fail the pipeline if more than this share of a column is suspicious
+
+train:
+  seed: 42
+  regressor:
+    n_estimators: 200
+    max_depth: null
+    min_samples_leaf: 1
+  classifier:
+    n_estimators: 200
+    max_depth: null
+    min_samples_leaf: 1
+  n_clusters: 3
+  drift_bins: 10                 # quantile bins stored as the drift-monitoring reference profile
+
+evaluate:
+  seed: 42
+  n_estimators: 100              # smaller forests for the many evaluation fits
+  test_size: 0.3                 # random split
+  n_group_folds: 5               # held-out-country GroupKFold
+  temporal_test_years: 7         # train on the earlier years, test on the last N
+
+# Release criteria. The pipeline (and CI) fails if a trained model misses any of them.
+gates:
+  min_r2_random: 0.85
+  min_r2_held_out: 0.15
+  min_r2_temporal: 0.60
+  min_accuracy_held_out: 0.45
+  max_r2_held_out_std: 0.40      # held-out-country results must be reasonably stable across folds
+
+tracking:
+  enabled: true                  # needs mlflow (requirements-dev); silently skipped if it is not installed
+  experiment: airburden
+  uri: sqlite:///mlflow.db       # view with: mlflow ui --backend-store-uri sqlite:///mlflow.db
