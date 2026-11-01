@@ -1,50 +1,27 @@
-import React from "react";
 import { Fab, Zoom, useScrollTrigger } from "@mui/material";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
+import { tokens } from "../theme";
 
-const ScrollToTop = ({ window }) => {
-  // Use Material-UI's useScrollTrigger to detect scroll position
-  const trigger = useScrollTrigger({
-    target: window ? window() : undefined,
-    disableHysteresis: true,
-    threshold: 100, // Show button after scrolling 100px
-  });
-
-  const handleClick = (event) => {
-    const anchor = (event.target.ownerDocument || document).querySelector(
-      "#back-to-top-anchor"
-    );
-
-    if (anchor) {
-      anchor.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  };
+const ScrollToTop = () => {
+  const trigger = useScrollTrigger({ disableHysteresis: true, threshold: 400 });
 
   return (
     <Zoom in={trigger}>
       <Fab
-        onClick={handleClick}
         size="medium"
-        aria-label="scroll back to top"
+        aria-label="Scroll back to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         sx={{
           position: "fixed",
-          bottom: 16,
-          right: 16,
-          backgroundColor: "#333", // Dark gray background
-          color: "#fff", // White icon color
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Subtle shadow
-          borderRadius: "50%", // Rounded edges
-          transition: "all 0.3s ease",
-          "&:hover": {
-            backgroundColor: "#444", // Darker gray on hover
-            boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.3)", // Enhanced shadow
-          },
+          bottom: 24,
+          right: 24,
+          color: "#fff",
+          backgroundColor: tokens.ink,
+          boxShadow: "0 8px 24px rgba(11,18,32,0.25)",
+          "&:hover": { backgroundColor: tokens.inkSoft },
         }}
       >
-        <KeyboardArrowUpIcon />
+        <KeyboardArrowUpRoundedIcon />
       </Fab>
     </Zoom>
   );

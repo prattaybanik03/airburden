@@ -59,3 +59,12 @@ export const getHealthNews = async (query) => {
         throw error;
     }
 };
+
+/** A readable message from an API error (FastAPI puts it in `detail`). */
+export const apiErrorMessage = (error, fallback = "Something went wrong. Please try again.") => {
+  const detail = error?.response?.data?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg;
+  if (error?.code === "ERR_NETWORK") return "The API is not reachable. It may be waking up; try again in a minute.";
+  return fallback;
+};

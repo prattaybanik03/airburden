@@ -1,116 +1,82 @@
-import React from "react";
-import { Box, Grid, Card, CardContent, Typography, Button } from "@mui/material";
-import InsightsIcon from "@mui/icons-material/Insights";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import ModelTrainingIcon from "@mui/icons-material/ModelTraining";
-import Typewriter from "typewriter-effect";
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Card, Grid, Stack, Typography } from "@mui/material";
+import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
+import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
+import PsychologyRoundedIcon from "@mui/icons-material/PsychologyRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import { IconTile, Reveal, Section, SectionHeader } from "./ui";
+import { tokens } from "../theme";
 
-const CardsSection = () => {
-  const cards = [
-    {
-      title: "Data Insights",
-      description: "Explore comprehensive data patterns in air quality.",
-      icon: <InsightsIcon style={{ fontSize: 50, color: "#1976D2" }} />,
-      buttonLabel: "Explore Insights",
-      link: "/air-quality-data",
-    },
-    {
-      title: "Advanced Visualizations",
-      description: "Dive into detailed and advanced visualizations.",
-      icon: <BarChartIcon style={{ fontSize: 50, color: "#28A745" }} />,
-      buttonLabel: "Explore Visuals",
-      link: "/air-quality-data#choropleth-map",
-    },
-    {
-      title: "AI/ML Model Predictions",
-      description: "See real-time predictions and analysis.",
-      icon: <ModelTrainingIcon style={{ fontSize: 50, color: "#FFC107" }} />,
-      buttonLabel: "Explore Models",
-      link: "/ai-ml",
-    },
-  ];
+const cards = [
+  {
+    title: "Data explorer",
+    description: "Filter, search and export all 5,332 country-years, with pollutant trends for any country.",
+    icon: <InsightsRoundedIcon />,
+    color: tokens.teal,
+    cta: "Open the explorer",
+    link: "/air-quality-data",
+  },
+  {
+    title: "World maps and comparisons",
+    description: "See exposure on a world map and compare the health burden of two countries over 31 years.",
+    icon: <PublicRoundedIcon />,
+    color: "#6366F1",
+    cta: "View the maps",
+    link: "/air-quality-data#choropleth-map",
+  },
+  {
+    title: "Model predictions",
+    description: "Estimate the health burden, risk level and exposure profile for any country and year.",
+    icon: <PsychologyRoundedIcon />,
+    color: "#F59E0B",
+    cta: "Run the models",
+    link: "/ai-ml",
+  },
+];
 
-  return (
-    <Box py={6} sx={{ backgroundColor: "#f8f9fa" }}>
-      <Typography
-        variant="h4"
-        align="center"
-        gutterBottom
-        sx={{ fontWeight: "bold", color: "#333", marginBottom: "2rem" }}
-      >
-        Discover Our Features
-      </Typography>
-      <Grid container spacing={4} justifyContent="center">
-        {cards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+const CardsSection = () => (
+  <Section>
+    <SectionHeader
+      eyebrow="What you can do"
+      title="From raw exposure data to model predictions"
+      subtitle="Three ways into the same dataset: browse it, visualise it, or ask the models what it implies."
+    />
+    <Grid container spacing={3}>
+      {cards.map((card, i) => (
+        <Grid item xs={12} md={4} key={card.title}>
+          <Reveal delay={i * 0.08}>
             <Card
+              component={RouterLink}
+              to={card.link}
               sx={{
-                borderRadius: "16px",
-                boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-                transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.15)",
-                },
+                display: "block",
+                height: "100%",
+                p: 3.5,
+                textDecoration: "none",
+                transition: "transform .25s ease, box-shadow .25s ease, border-color .25s ease",
+                "&:hover": { transform: "translateY(-4px)", boxShadow: tokens.shadowHover, borderColor: "#CBD5E1" },
+                "&:hover .cta-arrow": { transform: "translateX(4px)" },
               }}
             >
-              <CardContent
-                sx={{
-                  textAlign: "center",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: "2rem",
-                }}
-              >
+              <IconTile color={card.color} size={52}>
                 {card.icon}
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ fontWeight: "bold", marginTop: "1rem" }}
-                >
-                  {card.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{
-                    marginBottom: "1rem",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  <Typewriter
-                    options={{
-                      strings: [card.description],
-                      autoStart: true,
-                      loop: true,
-                      delay: 50,
-                      deleteSpeed: 30,
-                      pauseFor: 2000,
-                    }}
-                  />
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => (window.location.href = card.link)}
-                  sx={{
-                    textTransform: "none",
-                    padding: "8px 16px",
-                    fontSize: "0.9rem",
-                    borderRadius: "20px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {card.buttonLabel}
-                </Button>
-              </CardContent>
+              </IconTile>
+              <Typography variant="h5" sx={{ mt: 3 }}>
+                {card.title}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                {card.description}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 3, color: card.color, fontWeight: 650 }}>
+                <Box component="span">{card.cta}</Box>
+                <ArrowForwardRoundedIcon className="cta-arrow" sx={{ fontSize: 18, transition: "transform .2s" }} />
+              </Stack>
             </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
-};
+          </Reveal>
+        </Grid>
+      ))}
+    </Grid>
+  </Section>
+);
 
 export default CardsSection;
