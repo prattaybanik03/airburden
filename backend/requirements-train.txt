@@ -1,0 +1,5 @@
+# Training pipeline (data contracts, parquet stage outputs, params.yaml). Used by the Docker build stage.
+-r requirements.txt
+pandera>=0.30
+pyarrow>=17
+pyyaml>=6

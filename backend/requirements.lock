@@ -9,15 +9,16 @@ fastapi==0.142.2          # via -r requirements.txt
 h11==0.16.0               # via uvicorn
 httptools==0.8.0          # via uvicorn
 idna==3.20                # via anyio, requests
-joblib==1.6.0             # via -r requirements.txt, scikit-learn
+joblib==1.6.0             # via scikit-learn, -r requirements.txt
 narwhals==2.26.0          # via scikit-learn
-numpy==2.5.3              # via -r requirements.txt, pandas, scikit-learn, scipy
+numpy==2.5.3              # via pandas, scikit-learn, scipy, -r requirements.txt
 opentelemetry-api==1.45.0  # via fastapi
 pandas==3.0.6             # via -r requirements.txt
-pydantic==2.13.5          # via -r requirements.txt, fastapi
+prometheus-client==0.26.0  # via -r requirements.txt
+pydantic==2.13.5          # via fastapi, -r requirements.txt
 pydantic-core==2.46.5     # via pydantic
 python-dateutil==2.9.0.post0  # via pandas
-python-dotenv==1.2.4      # via -r requirements.txt, uvicorn
+python-dotenv==1.2.4      # via uvicorn, -r requirements.txt
 pyyaml==6.0.3             # via uvicorn
 requests==2.34.2          # via -r requirements.txt
 scikit-learn==1.9.1       # via -r requirements.txt
