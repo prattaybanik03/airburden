@@ -93,10 +93,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npm run build
-      # The inherited 2024 code still has lint errors (mostly unused imports); tracked as follow-up work.
       - run: npm run lint
-        continue-on-error: true
+      - run: npm run build
 
   docker:
     name: Docker build + API smoke test

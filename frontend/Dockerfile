@@ -9,5 +9,6 @@ ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 RUN cd frontend && npm run build
 
 FROM nginx:1.27-alpine
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /srv/frontend/dist /usr/share/nginx/html
 EXPOSE 80
