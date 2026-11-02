@@ -8,7 +8,7 @@ ARG VITE_BACKEND_URL=http://localhost:8000
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 RUN cd frontend && npm run build
 
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /srv/frontend/dist /usr/share/nginx/html
 EXPOSE 80
