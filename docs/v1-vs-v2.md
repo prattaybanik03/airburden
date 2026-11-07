@@ -30,7 +30,7 @@ what I found and what changed. I'm keeping it public on purpose: finding and fix
 | External APIs | no timeouts, 500s | timeouts, 502/503/404 with clean messages, US EPA AQI bands |
 | Ops | none | `/health` + `/ready`, Prometheus metrics, JSON logs with request IDs, configurable CORS, GitHub Actions CI |
 | ML lifecycle | notebook | data contracts, `params.yaml`, DVC pipeline, MLflow tracking, release gates, model card, drift check ([mlops.md](mlops.md)) |
-| Tests | 0 | 76 backend tests, 94% coverage |
+| Tests | 0 | 77 backend tests, 94% coverage |
 | Frontend | dataset duplicated inside the UI, 10 unused dependencies, a 5.7 MB video | one shared dataset, unused dependencies removed, optional hero video |
 
 ## Thanks
