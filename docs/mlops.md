@@ -145,7 +145,7 @@ shift. CI runs it as a self-check. In production it would run on a sample of log
 
 ## 9. Testing and CI
 
-76 backend tests (`make cov`, 94% line coverage, CI fails under 85%):
+77 backend tests (`make cov`, 94% line coverage, CI fails under 85%):
 
 | Area | Tests |
 |---|---|

@@ -53,8 +53,8 @@ and 2011 and 2013 Brazil in the training set, so the model only has to recognise
 
 ## Intended use
 
-An exploratory demo of a full-stack ML application (data, training, API, UI). It is **not** a validated health-risk predictor and
-the API says so in every prediction response (`disclaimer`) and in `/model_info`.
+An exploratory demo of a full-stack ML application (data, training, API, UI). It is **not** a validated health-risk predictor, and the API
+says so: the health-burden and batch responses carry a `disclaimer`, and `/model_info` repeats it.
 
 ## Next steps worth trying
 
