@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.observability import OUT_OF_RANGE, PREDICTED_BURDEN, PREDICTIONS
+from app.observability import FEATURE_PSI, OUT_OF_RANGE, PREDICTED_BURDEN, PREDICTIONS
 from app.schemas import (
     BatchItem,
     BatchRequest,
@@ -15,11 +15,14 @@ from app.schemas import (
     BurdenResponse,
     ClusterRequest,
     ClusterResponse,
+    DriftRequest,
+    DriftResponse,
     Features,
     FeaturesRequest,
     RiskResponse,
 )
 from app.services.model_service import DISCLAIMER, INFO_NOTE, ModelService, UnknownInput
+from ml.drift import MODERATE, SIGNIFICANT
 
 UNIT = "DALY rate"
 router = APIRouter(prefix="/v1", tags=["models v1"])
@@ -105,6 +108,26 @@ def v1_batch(body: BatchRequest, svc: ModelService = Depends(get_service)):
 @router.post("/clusters/assign", response_model=ClusterResponse, summary="Nearest exposure profile")
 def v1_cluster(body: ClusterRequest, svc: ModelService = Depends(get_service)):
     return _cluster(body, svc)
+
+
+@router.post(
+    "/monitoring/drift",
+    response_model=DriftResponse,
+    summary="Check a batch of served inputs for data drift (PSI per feature)",
+    description=(
+        "Compares a batch of logged inputs (50 to 5,000 rows) with the training distribution stored in the model "
+        f"bundle. PSI below {MODERATE} is stable, up to {SIGNIFICANT} a moderate shift, above it significant. "
+        "Drift is a result, not an error, so the response is 200 either way. Each feature's PSI is also exported as "
+        "the `airburden_feature_psi` gauge on /metrics."
+    ),
+)
+def v1_drift(body: DriftRequest, svc: ModelService = Depends(get_service)):
+    report = svc.drift([item.model_dump() for item in body.items])
+    for feature, result in report["features"].items():
+        FEATURE_PSI.labels(feature).set(result["psi"])
+    return DriftResponse(
+        model_version=svc.version, thresholds={"moderate": MODERATE, "significant": SIGNIFICANT}, **report
+    )
 
 
 @router.get("/model", summary="Model metadata, lineage, thresholds and clusters")

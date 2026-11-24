@@ -6,7 +6,7 @@
 [![Security](https://github.com/prattaybanik03/airburden/actions/workflows/security.yml/badge.svg)](https://github.com/prattaybanik03/airburden/actions/workflows/security.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue) ![DVC](https://img.shields.io/badge/DVC-pipeline-945DD6) ![MLflow](https://img.shields.io/badge/MLflow-tracking-0194E2) ![pandera](https://img.shields.io/badge/pandera-data%20contracts-555) ![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E) ![React](https://img.shields.io/badge/React-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-green)
 
-AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: validated data, reproducible training, honest evaluation, gated releases, a versioned and observable REST API, a React dashboard, containerisation, 76 automated tests and CI.
+AirBurden estimates how air-pollution exposure (NO2, ozone, PM2.5) relates to health burden across 172 countries (1990-2020). It covers the full ML lifecycle in one repository: validated data, reproducible training, honest evaluation, gated releases, a versioned and observable REST API, a React dashboard, containerisation, 84 automated tests and CI.
 
 **Live demo:** [airburden.onrender.com](https://airburden.onrender.com) (API docs: [airburden-api.onrender.com/docs](https://airburden-api.onrender.com/docs)). Hosted on free instances, so the first request after a pause can take about a minute.
 
@@ -28,8 +28,8 @@ One command (`python -m ml.pipeline run`, or `dvc repro`) takes the raw extract 
 | 3. Evaluate | Random vs held-out-country vs temporal splits, with trivial baselines | `ml/evaluate.py`, [docs](docs/evaluation.md) |
 | 4. Gate | **Release criteria** on the honest splits, a generated **model card**, one **MLflow** run (params, metrics, tags, artifacts) | `ml/gates.py`, `ml/tracking.py`, [model card](docs/model-card.md) |
 | Serve | FastAPI `/v1` (single + batch), extrapolation warnings, `/health` + `/ready`, **Prometheus** `/metrics`, JSON logs with request IDs | `backend/app/` |
-| Monitor | Per-feature PSI drift check against the training distribution | `ml/drift.py` |
-| Deliver | Layered lockfiles, multi-stage Docker image built *through* the gated pipeline, pytest (76 tests, 94% coverage), GitHub Actions (lint, tests, coverage gate, `dvc repro`, image smoke test) | `backend/Dockerfile`, `.github/workflows/` |
+| Monitor | Per-feature PSI drift check against the training distribution, as a CLI for batch jobs and as `POST /v1/monitoring/drift` with a Prometheus gauge per feature | `ml/drift.py`, `backend/app/` |
+| Deliver | Layered lockfiles, multi-stage Docker image built *through* the gated pipeline, pytest (84 tests, 94% coverage), GitHub Actions (lint, tests, coverage gate, `dvc repro`, image smoke test) | `backend/Dockerfile`, `.github/workflows/` |
 
 The design and the reasons behind each piece are in **[docs/mlops.md](docs/mlops.md)**. The first tracked experiment
 (does repairing corrupted pollutant values help?) is in [docs/experiments.md](docs/experiments.md).
@@ -110,6 +110,7 @@ Interactive docs at `/docs` (OpenAPI). The model endpoints need no API keys.
 | `POST /v1/predictions/risk-level` | Low / Moderate / High risk with class probabilities |
 | `POST /v1/predictions/batch` | Burden and risk for up to 500 rows in one call |
 | `POST /v1/clusters/assign` | Nearest exposure profile |
+| `POST /v1/monitoring/drift` | PSI per feature for a batch of 50 to 5,000 served inputs against the training distribution; also exported as `airburden_feature_psi` |
 | `GET /v1/model` | Model metadata, data lineage, feature ranges, thresholds, clusters |
 | `GET /health`, `GET /ready` | Liveness, and readiness (503 until a compatible model is loaded) |
 | `GET /metrics` | Prometheus metrics |
@@ -152,7 +153,7 @@ and an over-optimistic evaluation, and fixed them. The details are in [docs/v1-v
 | Why | model inputs were assembled in a different column order from training, and the output was un-scaled with the wrong scaler column | one shared feature list for training and serving, no scaler to invert, regression test |
 | Reported performance | R² ≈ 0.92 on a random split | R² 0.92 random, **0.31 on unseen countries**; does not beat a region average or "last value carried forward" |
 | Data | taken at face value | ~7-8% of each pollutant column is corrupted in the source extract ([details](docs/data-quality.md)) |
-| Tests | none | 76 backend tests (94% coverage) + CI |
+| Tests | none | 84 backend tests (94% coverage) + CI |
 
 The full evaluation, with baselines, is in [docs/evaluation.md](docs/evaluation.md). In short: a random split on panel data lets the model recognise
 *which country it is looking at*. On countries it has never seen, pollutant exposure adds little. I'd rather show that than hide it.

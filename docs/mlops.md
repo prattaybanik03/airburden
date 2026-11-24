@@ -138,6 +138,10 @@ curl -X POST localhost:8000/v1/predictions/batch -H 'Content-Type: application/j
 python -m ml.drift --current new_rows.json      # exit code 1 if any feature drifted significantly
 ```
 
+The API exposes the same check as `POST /v1/monitoring/drift`. It takes a batch of 50 to 5,000 served inputs, returns
+the PSI and status for each feature, and sets the `airburden_feature_psi{feature=...}` gauge, so a Prometheus alert
+can fire on a shift. Fewer than 50 rows are rejected, because PSI over ten quantile bins is noise on a handful of rows.
+
 The script computes the Population Stability Index (PSI) for each feature against the quantile profile stored in
 the bundle at training time. PSI below 0.10 is stable, 0.10-0.25 is a moderate shift and above 0.25 is a significant
 shift. CI runs it as a self-check. In production it would run on a sample of logged requests, together with the
@@ -145,7 +149,7 @@ shift. CI runs it as a self-check. In production it would run on a sample of log
 
 ## 9. Testing and CI
 
-76 backend tests (`make cov`, 94% line coverage, CI fails under 85%):
+84 backend tests (`make cov`, 94% line coverage, CI fails under 85%):
 
 | Area | Tests |
 |---|---|
