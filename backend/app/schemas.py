@@ -38,6 +38,39 @@ class FeaturesRequest(BaseModel):
     features: Features
 
 
+# PSI over ten quantile bins is noise on a handful of rows, so a drift check needs a real batch.
+MIN_DRIFT_ROWS = 50
+MAX_DRIFT_ROWS = 5000
+
+
+class DriftRow(BaseModel):
+    """One served input. Only the features with a training reference profile are read; other keys are ignored."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    year: int = Field(ge=1990, le=2100)
+    exposure_mean_no2: float = Field(ge=0)
+    exposure_mean_ozone: float = Field(ge=0)
+    exposure_mean_pm25: float = Field(ge=0)
+
+
+class DriftRequest(BaseModel):
+    items: list[DriftRow] = Field(min_length=MIN_DRIFT_ROWS, max_length=MAX_DRIFT_ROWS)
+
+
+class FeatureDrift(BaseModel):
+    psi: float
+    status: str
+
+
+class DriftResponse(BaseModel):
+    model_version: str
+    n_rows: int
+    thresholds: dict[str, float]
+    features: dict[str, FeatureDrift]
+    drift_detected: bool
+
+
 class BatchRequest(BaseModel):
     items: list[Features] = Field(min_length=1, max_length=MAX_BATCH)
 

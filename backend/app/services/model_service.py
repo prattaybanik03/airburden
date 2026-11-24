@@ -134,6 +134,12 @@ class ModelService:
         new_id = self.b["cluster_remap"][raw]
         return dict(self.b["cluster_profiles"][new_id])
 
+    def drift(self, rows: list[dict]) -> dict:
+        """PSI of a batch of served inputs against the training reference profile stored in the bundle."""
+        from ml.drift import drift_report
+
+        return drift_report(self.b["reference_profile"], pd.DataFrame(rows))
+
     def info(self) -> dict:
         meta = dict(self.b["meta"])
         if meta.get("git_commit") in (None, "unknown") and os.getenv("RENDER_GIT_COMMIT"):

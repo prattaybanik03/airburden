@@ -29,6 +29,9 @@ PREDICTED_BURDEN = Histogram(
     buckets=(250, 500, 1000, 2000, 4000, 8000, 12000, 16000, 20000),
 )
 OUT_OF_RANGE = Counter("airburden_out_of_range_inputs_total", "Inputs outside the training range", ["feature"])
+FEATURE_PSI = Gauge(
+    "airburden_feature_psi", "PSI of the last drift-checked batch against the training distribution", ["feature"]
+)
 MODEL_INFO = Gauge("airburden_model_info", "Loaded model (value is always 1)", ["model_version", "git_commit", "fingerprint"])
 
 
